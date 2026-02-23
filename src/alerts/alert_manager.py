@@ -20,6 +20,9 @@ class AlertStatus(Enum):
 
 
 class Alert:
+    explanation: Optional[str] = None
+    shap_values: Optional[Dict] = None
+    
     def __init__(
         self,
         alert_id: str,
@@ -38,8 +41,8 @@ class Alert:
         self.source = source
         self.metadata = metadata or {}
         self.status = AlertStatus.NEW.value
-        self.explanation = None
-        self.shap_values = None
+        self.explanation: Optional[str] = None
+        self.shap_values: Optional[Dict] = None
 
     def to_dict(self) -> Dict:
         return {
