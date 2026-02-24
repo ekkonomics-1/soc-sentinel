@@ -55,6 +55,15 @@ SIDEBAR_CSS = """
     #MainMenu {visibility: hidden !important;}
     footer {visibility: hidden !important;}
     
+    /* Hide sidebar toggle button */
+    button[data-testid="stSidebarToggle"] {
+        display: none !important;
+    }
+    
+    .stSidebar > div:first-child > button {
+        display: none !important;
+    }
+    
     /* Custom sidebar */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0d1117 0%, #161c25 100%) !important;
