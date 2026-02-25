@@ -580,6 +580,10 @@ def create_sidebar():
             ("activity", "Activity", "trending_up"),
             ("users", "Users", "people"),
             ("investigate", "Investigate", "search"),
+            ("rules", "Detection Rules", "shield"),
+            ("query", "Query Search", "database"),
+            ("triage", "Alert Triage", "checklist"),
+            ("timeline", "Incident Timeline", "clock"),
             ("shap", "SHAP Analysis", "psychology"),
             ("settings", "Settings", "settings"),
         ]
@@ -593,6 +597,10 @@ def create_sidebar():
                 "trending_up": "↗",
                 "people": "◉",
                 "search": "⌕",
+                "shield": "◈",
+                "database": "▤",
+                "checklist": "☑",
+                "clock": "⏱",
                 "psychology": "◈",
                 "settings": "⚙"
             }
@@ -971,6 +979,441 @@ def render_investigate_section(df, detected_anomalies):
         st.info("No threats to investigate")
 
 
+def render_detection_rules_section(df, detected_anomalies):
+    st.markdown('<h1 class="page-title">Detection Rules</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="page-subtitle">Sigma rules and detection logic used in this SOC</p>', unsafe_allow_html=True)
+    
+    # Define Sigma rules for different attack scenarios
+    sigma_rules = [
+        {
+            "id": "SOC-001",
+            "title": "Brute Force Attack Detection",
+            "category": "Credential Access",
+            "severity": "HIGH",
+            "condition": "login_failure_count > 10",
+            "description": "Detects potential brute force attempts when failed logins exceed threshold",
+            "mitre": "T1110",
+            "mitre_name": "Brute Force",
+            "status": "Active"
+        },
+        {
+            "id": "SOC-002",
+            "title": "Suspicious IP Spread",
+            "category": "Credential Access",
+            "severity": "HIGH",
+            "condition": "unique_ips > 5",
+            "description": "Detects when user accesses from multiple IP addresses",
+            "mitre": "T1078",
+            "mitre_name": "Valid Accounts",
+            "status": "Active"
+        },
+        {
+            "id": "SOC-003",
+            "title": "High Request Rate",
+            "category": "Impact",
+            "severity": "MEDIUM",
+            "condition": "request_rate > 100",
+            "description": "Detects unusually high request rates indicating potential DoS",
+            "mitre": "T1498",
+            "mitre_name": "Resource Hijacking",
+            "status": "Active"
+        },
+        {
+            "id": "SOC-004",
+            "title": "Data Exfiltration",
+            "category": "Exfiltration",
+            "severity": "CRITICAL",
+            "condition": "bytes_sent > 50000",
+            "description": "Detects large outbound data transfers",
+            "mitre": "T1041",
+            "mitre_name": "Exfiltration Over C2",
+            "status": "Active"
+        },
+        {
+            "id": "SOC-005",
+            "title": "After Hours Activity",
+            "category": "Persistence",
+            "severity": "MEDIUM",
+            "condition": "is_business_hours == 0",
+            "description": "Detects activity outside business hours",
+            "mitre": "T1078",
+            "mitre_name": "Valid Accounts",
+            "status": "Active"
+        },
+        {
+            "id": "SOC-006",
+            "title": "Geographic Anomaly",
+            "category": "Credential Access",
+            "severity": "HIGH",
+            "condition": "geo_countries_accessed > 3",
+            "description": "Detects access from multiple countries in short timeframe",
+            "mitre": "T1078",
+            "mitre_name": "Valid Accounts",
+            "status": "Active"
+        },
+        {
+            "id": "SOC-007",
+            "title": "High Error Rate",
+            "category": "Impact",
+            "severity": "MEDIUM",
+            "condition": "error_rate > 0.3",
+            "description": "Detects high error rate indicating potential exploitation",
+            "mitre": "T1494",
+            "mitre_name": "Runtime Data Manipulation",
+            "status": "Active"
+        },
+        {
+            "id": "SOC-008",
+            "title": "Slow Response Attack",
+            "category": "Impact",
+            "severity": "LOW",
+            "condition": "avg_response_time > 200",
+            "description": "Detects abnormally slow response times",
+            "mitre": "T1499",
+            "mitre_name": "Endpoint DoS",
+            "status": "Active"
+        }
+    ]
+    
+    # Display rules in a table format
+    st.markdown("### Active Detection Rules")
+    
+    # Summary metrics
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Rules", len(sigma_rules))
+    with col2:
+        active_count = sum(1 for r in sigma_rules if r['status'] == 'Active')
+        st.metric("Active", active_count)
+    with col3:
+        critical_count = sum(1 for r in sigma_rules if r['severity'] == 'CRITICAL')
+        st.metric("Critical", critical_count)
+    with col4:
+        high_count = sum(1 for r in sigma_rules if r['severity'] == 'HIGH')
+        st.metric("High", high_count)
+    
+    st.markdown("---")
+    
+    # Display rules
+    for rule in sigma_rules:
+        severity_colors = {
+            "CRITICAL": "#f85149",
+            "HIGH": "#d29922",
+            "MEDIUM": "#a371f7",
+            "LOW": "#8b949e"
+        }
+        
+        with st.expander(f"{rule['id']} | {rule['title']} | {rule['severity']}"):
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                st.markdown(f"**Description:** {rule['description']}")
+                st.markdown(f"**Condition:** `{rule['condition']}`")
+                st.markdown(f"**Category:** {rule['category']}")
+            
+            with col2:
+                st.markdown(f"**MITRE ATT&CK:**")
+                st.code(f"{rule['mitre']} - {rule['mitre_name']}")
+                
+                # Status badge
+                status_color = "#3fb950" if rule['status'] == 'Active' else "#8b949e"
+                st.markdown(f"<span style='color: {status_color};'>● {rule['status']}</span>", unsafe_allow_html=True)
+
+
+def render_query_search_section(df):
+    st.markdown('<h1 class="page-title">Query Search</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="page-subtitle">KQL-style query search across security events</p>', unsafe_allow_html=True)
+    
+    # Query builder
+    st.markdown("### Query Builder")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        field = st.selectbox(
+            "Field",
+            ["user", "country", "ip_address", "login_failure_count", "login_success_count", 
+             "unique_ips", "request_rate", "error_rate", "avg_response_time", "bytes_sent"]
+        )
+    
+    with col2:
+        operator = st.selectbox(
+            "Operator",
+            ["==", "!=", ">", "<", ">=", "<=", "contains", "startswith"]
+        )
+    
+    with col3:
+        value = st.text_input("Value", "")
+    
+    # Build and execute query
+    query_btn = st.button("Run Query", type="primary")
+    
+    if query_btn and value:
+        try:
+            if operator == "==":
+                if field in df.columns:
+                    results = df[df[field] == value]
+            elif operator == "!=":
+                if field in df.columns:
+                    results = df[df[field] != value]
+            elif operator in [">", "<", ">=", "<="]:
+                try:
+                    val = float(value)
+                    if field in df.columns:
+                        results = df[df[field].astype(float) > val] if operator == ">" else \
+                                 df[df[field].astype(float) < val] if operator == "<" else \
+                                 df[df[field].astype(float) >= val] if operator == ">=" else \
+                                 df[df[field].astype(float) <= val]
+                except:
+                    results = df
+            elif operator == "contains":
+                if field in df.columns:
+                    results = df[df[field].astype(str).str.contains(value, case=False, na=False)]
+            elif operator == "startswith":
+                if field in df.columns:
+                    results = df[df[field].astype(str).str.startswith(value, na=False)]
+            else:
+                results = df
+                
+            st.markdown(f"### Results: {len(results)} events found")
+            
+            if len(results) > 0:
+                st.dataframe(results.head(50), use_container_width=True)
+                
+                # Show if any are anomalies
+                anomaly_results = results[results['is_anomaly'] == 1]
+                if len(anomaly_results) > 0:
+                    st.warning(f"⚠️ {len(anomaly_results)} flagged as anomalies!")
+        except Exception as e:
+            st.error(f"Query error: {e}")
+    
+    # Pre-built queries
+    st.markdown("---")
+    st.markdown("### Pre-built Queries")
+    
+    query_templates = [
+        ("Failed Logins > 5", "login_failure_count > 5"),
+        ("High Request Rate", "request_rate > 50"),
+        ("Multiple Countries", "geo_countries_accessed > 2"),
+        ("After Hours", "is_business_hours == 0"),
+        ("Large Data Transfer", "bytes_sent > 30000"),
+    ]
+    
+    for name, query in query_templates:
+        if st.button(name, key=f"query_{name}"):
+            # Parse and execute simple queries
+            try:
+                if ">" in query:
+                    field, val = query.split(">")
+                    val = float(val.strip())
+                    results = df[df[field.strip()] > val]
+                elif "==" in query:
+                    field, val = query.split("==")
+                    results = df[df[field.strip()] == val.strip()]
+                else:
+                    results = df
+                    
+                st.session_state.query_results = results
+                st.rerun()
+            except:
+                pass
+    
+    if 'query_results' in st.session_state and st.session_state.query_results is not None:
+        st.markdown("### Query Results")
+        st.dataframe(st.session_state.query_results.head(50), use_container_width=True)
+
+
+def render_triage_section(df, detected_anomalies):
+    st.markdown('<h1 class="page-title">Alert Triage</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="page-subtitle">Prioritize and process security alerts</p>', unsafe_allow_html=True)
+    
+    if not detected_anomalies:
+        st.info("No alerts to triage")
+        return
+    
+    # Initialize triage state if not exists
+    if 'triage_state' not in st.session_state:
+        st.session_state.triage_state = {}
+        for idx, (orig_idx, r) in enumerate(detected_anomalies):
+            st.session_state.triage_state[orig_idx] = {
+                'status': 'New',
+                'priority': r['severity'],
+                'assigned_to': '',
+                'notes': ''
+            }
+    
+    # Summary
+    col1, col2, col3, col4 = st.columns(4)
+    triage_states = [st.session_state.triage_state.get(orig_idx, {}).get('status', 'New') 
+                     for orig_idx, _ in detected_anomalies]
+    
+    with col1:
+        st.metric("Total Alerts", len(detected_anomalies))
+    with col2:
+        new_count = triage_states.count('New')
+        st.metric("New", new_count)
+    with col3:
+        in_progress = triage_states.count('In Progress')
+        st.metric("In Progress", in_progress)
+    with col4:
+        resolved = triage_states.count('Resolved')
+        st.metric("Resolved", resolved)
+    
+    st.markdown("---")
+    
+    # Triage form
+    st.markdown("### Triage Alert")
+    
+    alert_options = [f"Event {orig_idx} - {r['severity']} - Score: {r['anomaly_score']:.3f}" 
+                    for orig_idx, r in detected_anomalies]
+    alert_idx = st.selectbox("Select Alert", range(len(detected_anomalies)), format_func=lambda i: alert_options[i])
+    
+    orig_idx, selected_alert = detected_anomalies[alert_idx]
+    row = df.iloc[orig_idx]
+    
+    # Current triage state
+    current = st.session_state.triage_state.get(orig_idx, {'status': 'New', 'priority': selected_alert['severity'], 'assigned_to': '', 'notes': ''})
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        new_status = st.selectbox(
+            "Status",
+            ["New", "In Progress", "Escalated", "Resolved", "False Positive"],
+            index=["New", "In Progress", "Escalated", "Resolved", "False Positive"].index(current['status'])
+        )
+        new_priority = st.selectbox(
+            "Priority",
+            ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+            index=["CRITICAL", "HIGH", "MEDIUM", "LOW"].index(current['priority'])
+        )
+    
+    with col2:
+        assigned_to = st.text_input("Assigned To", current['assigned_to'])
+        notes = st.text_area("Analyst Notes", current['notes'])
+    
+    if st.button("Update Triage", type="primary"):
+        st.session_state.triage_state[orig_idx] = {
+            'status': new_status,
+            'priority': new_priority,
+            'assigned_to': assigned_to,
+            'notes': notes
+        }
+        st.success(f"Alert {orig_idx} updated!")
+    
+    # Display triage queue
+    st.markdown("---")
+    st.markdown("### Triage Queue")
+    
+    for idx, (orig_idx, r) in enumerate(detected_anomalies[:10]):
+        state = st.session_state.triage_state.get(orig_idx, {'status': 'New', 'priority': r['severity']})
+        
+        status_colors = {
+            "New": "#58a6ff",
+            "In Progress": "#d29922",
+            "Escalated": "#f85149",
+            "Resolved": "#3fb950",
+            "False Positive": "#8b949e"
+        }
+        
+        st.markdown(f"""
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: #161b22; border: 1px solid #30363d; border-radius: 8px; margin-bottom: 0.5rem;">
+            <span style="color: {status_colors.get(state['status'], '#8b949e')}; font-weight: 600;">{state['status']}</span>
+            <span style="flex: 1;">Event {orig_idx}</span>
+            <span style="color: {'#f85149' if state['priority'] == 'CRITICAL' else '#d29922' if state['priority'] == 'HIGH' else '#8b949e'};">{state['priority']}</span>
+            <span style="color: #8b949e;">Score: {r['anomaly_score']:.3f}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+def render_timeline_section(df, detected_anomalies):
+    st.markdown('<h1 class="page-title">Incident Timeline</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="page-subtitle">Chronological view of security events</p>', unsafe_allow_html=True)
+    
+    if not detected_anomalies:
+        st.info("No events to display")
+        return
+    
+    # Create timeline data
+    timeline_data = []
+    for orig_idx, r in detected_anomalies:
+        row = df.iloc[orig_idx]
+        timeline_data.append({
+            'timestamp': row.get('timestamp', datetime.now()),
+            'event_id': orig_idx,
+            'severity': r['severity'],
+            'score': r['anomaly_score'],
+            'user': row.get('user', 'Unknown'),
+            'description': f"Anomaly detected - Score: {r['anomaly_score']:.3f}"
+        })
+    
+    # Sort by timestamp
+    timeline_data.sort(key=lambda x: x['timestamp'])
+    
+    # Timeline visualization
+    st.markdown("### Event Timeline")
+    
+    # Timeline chart
+    fig = go.Figure()
+    
+    severity_colors = {
+        "CRITICAL": "#f85149",
+        "HIGH": "#d29922", 
+        "MEDIUM": "#a371f7",
+        "LOW": "#8b949e"
+    }
+    
+    for event in timeline_data[:20]:
+        color = severity_colors.get(event['severity'], '#8b949e')
+        fig.add_trace(go.Scatter(
+            x=[event['timestamp']],
+            y=[event['score']],
+            mode='markers+text',
+            marker=dict(size=20, color=color, symbol='diamond'),
+            text=[f"Event {event['event_id']}"],
+            textposition='top center',
+            hovertemplate=f"<b>Event {event['event_id']}</b><br>" +
+                         f"Time: {event['timestamp']}<br>" +
+                         f"Severity: {event['severity']}<br>" +
+                         f"Score: {event['score']:.3f}<br>" +
+                         f"User: {event['user']}<extra></extra>"
+        ))
+    
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color="#8b949e"),
+        xaxis=dict(title="Time", gridcolor="rgba(48, 54, 61, 0.5)"),
+        yaxis=dict(title="Anomaly Score", gridcolor="rgba(48, 54, 61, 0.5)"),
+        height=400
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Timeline list
+    st.markdown("### Event Details")
+    
+    for event in timeline_data[:15]:
+        severity_colors = {
+            "CRITICAL": "#f85149",
+            "HIGH": "#d29922",
+            "MEDIUM": "#a371f7",
+            "LOW": "#8b949e"
+        }
+        color = severity_colors.get(event['severity'], '#8b949e')
+        
+        with st.expander(f"🕐 {event['timestamp']} | {event['severity']} | Event {event['event_id']}"):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown(f"**Event ID:** {event['event_id']}")
+                st.markdown(f"**Timestamp:** {event['timestamp']}")
+                st.markdown(f"**User:** {event['user']}")
+            with col2:
+                st.markdown(f"**Severity:** {event['severity']}")
+                st.markdown(f"**Score:** {event['score']:.4f}")
+                st.markdown(f"**Description:** {event['description']}")
+
+
 def render_shap_section():
     st.markdown('<h1 class="page-title">SHAP Analysis</h1>', unsafe_allow_html=True)
     st.markdown('<p class="page-subtitle">Explainable AI - Why threats were detected</p>', unsafe_allow_html=True)
@@ -1067,6 +1510,14 @@ def create_dashboard():
             render_users_section(df)
         elif current == "investigate":
             render_investigate_section(df, detected_anomalies)
+        elif current == "rules":
+            render_detection_rules_section(df, detected_anomalies)
+        elif current == "query":
+            render_query_search_section(df)
+        elif current == "triage":
+            render_triage_section(df, detected_anomalies)
+        elif current == "timeline":
+            render_timeline_section(df, detected_anomalies)
         elif current == "shap":
             render_shap_section()
         elif current == "settings":
