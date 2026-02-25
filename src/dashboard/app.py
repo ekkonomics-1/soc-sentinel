@@ -584,6 +584,7 @@ def create_sidebar():
             ("query", "Query Search", "database"),
             ("triage", "Alert Triage", "checklist"),
             ("timeline", "Incident Timeline", "clock"),
+            ("threat_intel", "Threat Intel", "globe"),
             ("shap", "SHAP Analysis", "psychology"),
             ("settings", "Settings", "settings"),
         ]
@@ -1414,6 +1415,213 @@ def render_timeline_section(df, detected_anomalies):
                 st.markdown(f"**Description:** {event['description']}")
 
 
+def render_threat_intel_section(df, detected_anomalies):
+    st.markdown('<h1 class="page-title">Threat Intelligence</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="page-subtitle">Threat intelligence enrichment and geographic analysis</p>', unsafe_allow_html=True)
+    
+    # Initialize session state for API key if not exists
+    if 'vt_api_key' not in st.session_state:
+        st.session_state.vt_api_key = ""
+    
+    # Settings in expander
+    with st.expander("⚙️ Threat Intelligence Settings"):
+        st.session_state.vt_api_key = st.text_input(
+            "VirusTotal API Key", 
+            value=st.session_state.vt_api_key,
+            type="password",
+            help="Get free API key at https://www.virustotal.com/gui/join-free"
+        )
+        if st.session_state.vt_api_key:
+            st.success("✅ API Key configured")
+        else:
+            st.warning("⚠️ Enter API key for live threat intelligence")
+    
+    st.markdown("---")
+    
+    # Summary metrics
+    col1, col2, col3, col4 = st.columns(4)
+    
+    # Analyze countries from anomalies
+    countries = []
+    ip_addresses = []
+    for orig_idx, r in detected_anomalies:
+        row = df.iloc[orig_idx]
+        if row.get('country'):
+            countries.append(row.get('country'))
+        if row.get('ip_address'):
+            ip_addresses.append(row.get('ip_address'))
+    
+    unique_countries = list(set(countries))
+    unique_ips = list(set(ip_addresses))
+    
+    with col1:
+        st.metric("Monitored IPs", len(df['ip_address'].unique()) if 'ip_address' in df.columns else 0)
+    with col2:
+        st.metric("Unique Countries", len(unique_countries))
+    with col3:
+        st.metric("Anomalous IPs", len(unique_ips))
+    with col4:
+        st.metric("Threat Level", "MEDIUM" if len(detected_anomalies) > 10 else "LOW")
+    
+    st.markdown("---")
+    
+    # Geographic Distribution
+    st.markdown("### Geographic Threat Distribution")
+    
+    # Country analysis
+    country_counts = {}
+    for c in countries:
+        country_counts[c] = country_counts.get(c, 0) + 1
+    
+    if country_counts:
+        # Create bar chart for countries
+        fig = go.Figure(go.Bar(
+            x=list(country_counts.keys()),
+            y=list(country_counts.values()),
+            marker_color='#f85149'
+        ))
+        fig.update_layout(
+            title="Threats by Country",
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color="#8b949e"),
+            xaxis=dict(title="Country"),
+            yaxis=dict(title="Threat Count"),
+            height=300
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # IP Enrichment Section
+    st.markdown("---")
+    st.markdown("### IP Threat Intelligence")
+    
+    if not detected_anomalies:
+        st.info("No anomalies to analyze")
+        return
+    
+    # Select IP to investigate
+    ip_options = [f"{row.get('ip_address', 'Unknown')} - {row.get('user', 'Unknown')}" 
+                 for _, r in detected_anomalies 
+                 for row in [df.iloc[_[0]]] if row.get('ip_address')]
+    
+    if ip_options:
+        selected_ip_info = st.selectbox("Select IP to Investigate", range(len(ip_options)), 
+                                       format_func=lambda i: ip_options[i])
+        
+        # Extract IP from selection
+        selected_ip = ip_options[selected_ip_info].split(" - ")[0]
+        
+        # Lookup button
+        if st.button("🔍 Lookup IP on VirusTotal", type="primary"):
+            if not st.session_state.vt_api_key:
+                st.error("Please configure VirusTotal API key in settings above")
+            else:
+                with st.spinner(f"Looking up {selected_ip}..."):
+                    try:
+                        import requests
+                        url = f"https://www.virustotal.com/api/v3/ip_addresses/{selected_ip}"
+                        headers = {"x-apikey": st.session_state.vt_api_key}
+                        response = requests.get(url, headers=headers, timeout=10)
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            stats = data.get('data', {}).get('attributes', {}).get('last_analysis_stats', {})
+                            
+                            col1, col2, col3, col4, col5 = st.columns(5)
+                            with col1:
+                                st.metric("Malicious", stats.get('malicious', 0))
+                            with col2:
+                                st.metric("Suspicious", stats.get('suspicious', 0))
+                            with col3:
+                                st.metric("Harmless", stats.get('harmless', 0))
+                            with col4:
+                                st.metric("Undetected", stats.get('undetected', 0))
+                            with col5:
+                                total = sum(stats.values())
+                                malicious_pct = (stats.get('malicious', 0) / total * 100) if total > 0 else 0
+                                st.metric("Threat %", f"{malicious_pct:.1f}%")
+                            
+                            # Show who detected
+                            results = data.get('data', {}).get('attributes', {}).get('last_analysis_results', {})
+                            if results:
+                                st.markdown("#### Detection Results")
+                                for vendor, result in list(results.items())[:10]:
+                                    category = result.get('category', '')
+                                    method = result.get('method', '')
+                                    result_val = result.get('result', 'unrated')
+                                    
+                                    color = "#f85149" if result_val == 'malicious' else "#d29922" if result_val == 'suspicious' else "#8b949e"
+                                    st.markdown(f"**{vendor}**: <span style='color:{color}'>{result_val}</span> ({method})", unsafe_allow_html=True)
+                        elif response.status_code == 404:
+                            st.info(f"No VirusTotal data found for {selected_ip}")
+                        else:
+                            st.error(f"API Error: {response.status_code}")
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+    else:
+        st.info("No IP addresses found in anomalies")
+    
+    # MITRE ATT&CK Overview
+    st.markdown("---")
+    st.markdown("### MITRE ATT&CK Coverage")
+    
+    # MITRE tactics and techniques
+    mitre_tactics = {
+        "Reconnaissance": {"count": 0, "color": "#8b949e"},
+        "Resource Development": {"count": 0, "color": "#8b949e"},
+        "Initial Access": {"count": 0, "color": "#f85149"},
+        "Execution": {"count": 0, "color": "#f85149"},
+        "Persistence": {"count": 1, "color": "#f85149"},
+        "Privilege Escalation": {"count": 1, "color": "#d29922"},
+        "Defense Evasion": {"count": 0, "color": "#d29922"},
+        "Credential Access": {"count": 3, "color": "#f85149"},
+        "Discovery": {"count": 0, "color": "#d29922"},
+        "Lateral Movement": {"count": 0, "color": "#d29922"},
+        "Collection": {"count": 0, "color": "#a371f7"},
+        "Command and Control": {"count": 0, "color": "#a371f7"},
+        "Exfiltration": {"count": 1, "color": "#a371f7"},
+        "Impact": {"count": 3, "color": "#f85149"},
+    }
+    
+    # Create MITRE heatmap-style display
+    cols = st.columns(7)
+    for i, (tactic, data) in enumerate(mitre_tactics.items()):
+        with cols[i % 7]:
+            st.markdown(f"""
+            <div style="background: {data['color']}20; border: 1px solid {data['color']}; border-radius: 8px; padding: 0.75rem; text-align: center; margin-bottom: 0.5rem;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: {data['color']};">{data['count']}</div>
+                <div style="font-size: 0.65rem; color: #8b949e;">{tactic[:10]}</div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Threat indicators summary
+    st.markdown("---")
+    st.markdown("### Threat Indicators Summary")
+    
+    # Create summary table
+    threat_indicators = [
+        {"Type": "Brute Force", "Count": sum(1 for _, r in detected_anomalies if df.iloc[_[0]].get('login_failure_count', 0) > 5),
+         "Severity": "HIGH", "MITRE": "T1110"},
+        {"Type": "Account Takeover", "Count": sum(1 for _, r in detected_anomalies if df.iloc[_[0]].get('unique_ips', 0) > 3),
+         "Severity": "HIGH", "MITRE": "T1078"},
+        {"Type": "Data Exfiltration", "Count": sum(1 for _, r in detected_anomalies if df.iloc[_[0]].get('bytes_sent', 0) > 30000),
+         "Severity": "CRITICAL", "MITRE": "T1041"},
+        {"Type": "DoS Activity", "Count": sum(1 for _, r in detected_anomalies if df.iloc[_[0]].get('request_rate', 0) > 50),
+         "Severity": "MEDIUM", "MITRE": "T1498"},
+    ]
+    
+    for indicator in threat_indicators:
+        severity_color = "#f85149" if indicator['Severity'] == 'CRITICAL' else "#d29922" if indicator['Severity'] == 'HIGH' else "#a371f7"
+        st.markdown(f"""
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: #161b22; border: 1px solid #30363d; border-radius: 8px; margin-bottom: 0.5rem;">
+            <span style="color: {severity_color}; font-weight: 600; min-width: 80px;">{indicator['Severity']}</span>
+            <span style="flex: 1; font-weight: 500;">{indicator['Type']}</span>
+            <span style="color: #8b949e;">{indicator['Count']} events</span>
+            <span style="font-family: monospace; color: #58a6ff;">{indicator['MITRE']}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+
 def render_shap_section():
     st.markdown('<h1 class="page-title">SHAP Analysis</h1>', unsafe_allow_html=True)
     st.markdown('<p class="page-subtitle">Explainable AI - Why threats were detected</p>', unsafe_allow_html=True)
@@ -1518,6 +1726,8 @@ def create_dashboard():
             render_triage_section(df, detected_anomalies)
         elif current == "timeline":
             render_timeline_section(df, detected_anomalies)
+        elif current == "threat_intel":
+            render_threat_intel_section(df, detected_anomalies)
         elif current == "shap":
             render_shap_section()
         elif current == "settings":
