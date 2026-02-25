@@ -1420,8 +1420,11 @@ def render_threat_intel_section(df, detected_anomalies):
     st.markdown('<p class="page-subtitle">Threat intelligence enrichment and geographic analysis</p>', unsafe_allow_html=True)
     
     # Initialize session state for API key if not exists
+    # Default API key pre-configured for demo
+    DEFAULT_VT_API_KEY = "e4d4d6f32775ee354c6bd7bbe134f75469cccb582a1659d8572cb5ae8b4d1572"
+    
     if 'vt_api_key' not in st.session_state:
-        st.session_state.vt_api_key = ""
+        st.session_state.vt_api_key = DEFAULT_VT_API_KEY
     
     # Settings in expander
     with st.expander("⚙️ Threat Intelligence Settings"):
@@ -1431,8 +1434,10 @@ def render_threat_intel_section(df, detected_anomalies):
             type="password",
             help="Get free API key at https://www.virustotal.com/gui/join-free"
         )
-        if st.session_state.vt_api_key:
-            st.success("✅ API Key configured")
+        if st.session_state.vt_api_key == DEFAULT_VT_API_KEY:
+            st.success("✅ API Key configured (Demo)")
+        elif st.session_state.vt_api_key:
+            st.success("✅ Custom API Key configured")
         else:
             st.warning("⚠️ Enter API key for live threat intelligence")
     
