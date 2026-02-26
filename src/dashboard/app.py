@@ -1505,16 +1505,17 @@ def render_threat_intel_section(df, detected_anomalies):
         return
     
     # Select IP to investigate
-    ip_options = [f"{row.get('ip_address', 'Unknown')} - {row.get('user', 'Unknown')}" 
-                 for _, r in detected_anomalies 
-                 for row in [df.iloc[_[0]]] if row.get('ip_address')]
+    ip_options = []
+    for orig_idx, r in detected_anomalies:
+        row = df.iloc[orig_idx]
+        if row.get('ip_address'):
+            ip_options.append(f"{row.get('ip_address', 'Unknown')} - {row.get('user', 'Unknown')}")
     
     if ip_options:
-        selected_ip_info = st.selectbox("Select IP to Investigate", range(len(ip_options)), 
-                                       format_func=lambda i: ip_options[i])
+        selected_ip_info = st.selectbox("Select IP to Investigate", ip_options)
         
         # Extract IP from selection
-        selected_ip = ip_options[selected_ip_info].split(" - ")[0]
+        selected_ip = selected_ip_info.split(" - ")[0]
         
         # Lookup button
         if st.button("🔍 Lookup IP on VirusTotal", type="primary"):
