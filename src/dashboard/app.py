@@ -585,6 +585,7 @@ def create_sidebar():
             ("triage", "Alert Triage", "checklist"),
             ("timeline", "Incident Timeline", "clock"),
             ("threat_intel", "Threat Intel", "globe"),
+            ("incident_response", "Incident Response", "rocket"),
             ("shap", "SHAP Analysis", "psychology"),
             ("settings", "Settings", "settings"),
         ]
@@ -602,6 +603,7 @@ def create_sidebar():
                 "database": "▤",
                 "checklist": "☑",
                 "clock": "⏱",
+                "rocket": "🚀",
                 "psychology": "◈",
                 "settings": "⚙"
             }
@@ -1531,41 +1533,188 @@ def render_threat_intel_section(df, detected_anomalies):
                         
                         if response.status_code == 200:
                             data = response.json()
-                            stats = data.get('data', {}).get('attributes', {}).get('last_analysis_stats', {})
+                            attrs = data.get('data', {}).get('attributes', {})
+                            stats = attrs.get('last_analysis_stats', {})
                             
-                            col1, col2, col3, col4, col5 = st.columns(5)
-                            with col1:
-                                st.metric("Malicious", stats.get('malicious', 0))
-                            with col2:
-                                st.metric("Suspicious", stats.get('suspicious', 0))
-                            with col3:
-                                st.metric("Harmless", stats.get('harmless', 0))
-                            with col4:
-                                st.metric("Undetected", stats.get('undetected', 0))
-                            with col5:
-                                total = sum(stats.values())
-                                malicious_pct = (stats.get('malicious', 0) / total * 100) if total > 0 else 0
-                                st.metric("Threat %", f"{malicious_pct:.1f}%")
+                            # Calculate threat score
+                            malicious = stats.get('malicious', 0)
+                            suspicious = stats.get('suspicious', 0)
+                            total = sum(stats.values())
+                            threat_score = malicious + suspicious
+                            threat_pct = (threat_score / total * 100) if total > 0 else 0
                             
-                            # Show who detected
-                            results = data.get('data', {}).get('attributes', {}).get('last_analysis_results', {})
+                            # Determine threat level
+                            if threat_pct >= 50:
+                                threat_level = "CRITICAL"
+                                level_color = "#f85149"
+                            elif threat_pct >= 20:
+                                threat_level = "HIGH"
+                                level_color = "#d29922"
+                            elif threat_pct >= 5:
+                                threat_level = "MEDIUM"
+                                level_color = "#a371f7"
+                            else:
+                                threat_level = "LOW"
+                                level_color = "#3fb950"
+                            
+                            # === VIRUSTOTAL-STYLE HEADER ===
+                            st.markdown(f"""
+                            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid {level_color}; border-radius: 12px; padding: 1.5rem; margin: 1rem 0;">
+                                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                    <div style="width: 60px; height: 60px; background: {level_color}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                        ⚠️
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 1.5rem; font-weight: 700; color: #fff;">{selected_ip}</div>
+                                        <div style="color: #8b949e; font-size: 0.85rem;">IP Address Analysis</div>
+                                    </div>
+                                    <div style="margin-left: auto; text-align: right;">
+                                        <div style="font-size: 2rem; font-weight: 700; color: {level_color};">{threat_score}</div>
+                                        <div style="color: #8b949e; font-size: 0.75rem;">/{total} vendors</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <span style="background: {level_color}; color: white; padding: 0.4rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem;">
+                                        {threat_level} THREAT
+                                    </span>
+                                    <span style="color: #8b949e; font-size: 0.85rem;">
+                                        {threat_pct:.1f}% detection rate
+                                    </span>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # === THREAT CATEGORIES (VirusTotal style) ===
+                            st.markdown("##### Threat Categories")
+                            
+                            # Create visual bars for each category
+                            categories = [
+                                ("Malicious", malicious, "#f85149"),
+                                ("Suspicious", suspicious, "#d29922"),
+                                ("Undetected", stats.get('undetected', 0), "#8b949e"),
+                                ("Harmless", stats.get('harmless', 0), "#3fb950"),
+                                ("Timeout", stats.get('timeout', 0), "#6e7681"),
+                            ]
+                            
+                            for cat_name, cat_count, cat_color in categories:
+                                pct = (cat_count / total * 100) if total > 0 else 0
+                                bar_width = pct
+                                
+                                st.markdown(f"""
+                                <div style="margin: 0.5rem 0;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                        <span style="color: #c9d1d9; font-size: 0.85rem;">{cat_name}</span>
+                                        <span style="color: {cat_color}; font-weight: 600; font-size: 0.85rem;">{cat_count} ({pct:.1f}%)</span>
+                                    </div>
+                                    <div style="background: #21262d; border-radius: 4px; height: 8px; overflow: hidden;">
+                                        <div style="background: {cat_color}; width: {bar_width}%; height: 100%; border-radius: 4px;"></div>
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            
+                            # === DETECTION VENDORS ===
+                            st.markdown("##### Security Vendor Detections")
+                            
+                            results = attrs.get('last_analysis_results', {})
                             if results:
-                                st.markdown("#### Detection Results")
-                                for vendor, result in list(results.items())[:10]:
-                                    category = result.get('category', '')
-                                    method = result.get('method', '')
+                                # Group by result type
+                                malicious_vendors = []
+                                suspicious_vendors = []
+                                other_vendors = []
+                                
+                                for vendor, result in results.items():
                                     result_val = result.get('result', 'unrated')
+                                    method = result.get('method', '')
+                                    category = result.get('category', '')
                                     
-                                    color = "#f85149" if result_val == 'malicious' else "#d29922" if result_val == 'suspicious' else "#8b949e"
-                                    st.markdown(f"**{vendor}**: <span style='color:{color}'>{result_val}</span> ({method})", unsafe_allow_html=True)
+                                    vendor_info = {
+                                        'name': vendor,
+                                        'result': result_val,
+                                        'method': method,
+                                        'category': category
+                                    }
+                                    
+                                    if result_val == 'malicious':
+                                        malicious_vendors.append(vendor_info)
+                                    elif result_val == 'suspicious':
+                                        suspicious_vendors.append(vendor_info)
+                                    else:
+                                        other_vendors.append(vendor_info)
+                                
+                                
+                                # Show malicious vendors first
+                                if malicious_vendors:
+                                    st.markdown(f"""
+                                    <div style="background: rgba(248, 81, 73, 0.1); border-left: 3px solid #f85149; padding: 1rem; margin: 1rem 0; border-radius: 0 8px 8px 0;">
+                                        <div style="color: #f85149; font-weight: 600; margin-bottom: 0.75rem;">🚫 Malicious ({len(malicious_vendors)})</div>
+                                    """, unsafe_allow_html=True)
+                                    
+                                    for v in malicious_vendors[:8]:
+                                        st.markdown(f"""
+                                        <div style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid #30363d;">
+                                            <span style="color: #c9d1d9;">{v['name']}</span>
+                                            <span style="color: #f85149; font-weight: 500;">{v['result']}</span>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                    st.markdown("</div>", unsafe_allow_html=True)
+                                
+                                if suspicious_vendors:
+                                    st.markdown(f"""
+                                    <div style="background: rgba(210, 153, 34, 0.1); border-left: 3px solid #d29922; padding: 1rem; margin: 1rem 0; border-radius: 0 8px 8px 0;">
+                                        <div style="color: #d29922; font-weight: 600; margin-bottom: 0.75rem;">⚠️ Suspicious ({len(suspicious_vendors)})</div>
+                                    """, unsafe_allow_html=True)
+                                    
+                                    for v in suspicious_vendors[:5]:
+                                        st.markdown(f"""
+                                        <div style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid #30363d;">
+                                            <span style="color: #c9d1d9;">{v['name']}</span>
+                                            <span style="color: #d29922; font-weight: 500;">{v['result']}</span>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                    st.markdown("</div>", unsafe_allow_html=True)
+                                
+                                # Network info
+                                st.markdown("##### Network Information")
+                                
+                                raw_network = attrs.get('network', {})
+                                if isinstance(raw_network, dict):
+                                    network = raw_network
+                                    asn = network.get('asn', 'Unknown')
+                                    as_owner = network.get('as_owner', 'Unknown')
+                                    network_country = network.get('country', 'Unknown')
+                                else:
+                                    asn = str(raw_network) if raw_network else 'Unknown'
+                                    as_owner = 'Unknown'
+                                    network_country = 'Unknown'
+                                
+                                col1, col2, col3 = st.columns(3)
+                                with col1:
+                                    st.metric("ASN", asn)
+                                with col2:
+                                    st.metric("AS Owner", as_owner[:20] if len(as_owner) > 20 else as_owner)
+                                with col3:
+                                    st.metric("Country", network_country)
+                                
+                                # Last analysis info
+                                last_analysis = attrs.get('last_analysis_date', 'Unknown')
+                                st.caption(f"Last analyzed: {last_analysis}")
+                                
                         elif response.status_code == 404:
-                            st.info(f"No VirusTotal data found for {selected_ip}")
+                            # No data - show clean "not found" UI
+                            st.markdown(f"""
+                            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid #30363d; border-radius: 12px; padding: 2rem; margin: 1rem 0; text-align: center;">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                                <div style="font-size: 1.25rem; font-weight: 600; color: #fff; margin-bottom: 0.5rem;">{selected_ip}</div>
+                                <div style="color: #8b949e;">No security vendor flagged this IP as malicious</div>
+                                <div style="color: #6e7681; font-size: 0.85rem; margin-top: 1rem;">This IP has not been observed in any malicious activity dataset</div>
+                            </div>
+                            """, unsafe_allow_html=True)
                         else:
                             st.error(f"API Error: {response.status_code}")
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
-    else:
-        st.info("No IP addresses found in anomalies")
+        else:
+            st.info("No IP addresses found in anomalies")
     
     # MITRE ATT&CK Overview
     st.markdown("---")
@@ -1628,6 +1777,447 @@ def render_threat_intel_section(df, detected_anomalies):
             <span style="font-family: monospace; color: #58a6ff;">{indicator['MITRE']}</span>
         </div>
         """, unsafe_allow_html=True)
+
+
+def render_incident_response_section(df, detected_anomalies, results):
+    st.markdown('<h1 class="page-title">Incident Response</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="page-subtitle">Escalation, evidence collection, playbooks, and reporting</p>', unsafe_allow_html=True)
+    
+    if 'escalated_incidents' not in st.session_state:
+        st.session_state.escalated_incidents = []
+    if 'evidence_collection' not in st.session_state:
+        st.session_state.evidence_collection = {}
+    if 'playbook_history' not in st.session_state:
+        st.session_state.playbook_history = []
+    
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "🚀 One-Click Escalation", 
+        "🔍 Evidence Collection", 
+        "📋 Playbook Suggestions", 
+        "📄 Report Generation"
+    ])
+    
+    with tab1:
+        st.markdown("### One-Click Incident Escalation")
+        st.markdown("Escalate detected anomalies to incident tickets with a single click")
+        
+        if not detected_anomalies:
+            st.info("No anomalies detected to escalate")
+        else:
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                incident_type = st.selectbox(
+                    "Incident Type",
+                    ["Suspected Breach", "Malware Detection", "Data Exfiltration", 
+                     "Credential Compromise", "DDoS Attack", "Insider Threat", "Other"]
+                )
+            
+            with col2:
+                priority = st.selectbox(
+                    "Priority",
+                    ["P1 - Critical", "P2 - High", "P3 - Medium", "P4 - Low"]
+                )
+            
+            st.markdown("#### Select Anomalies to Escalate")
+            
+            selected_incidents = []
+            
+            for idx, (orig_idx, r) in enumerate(detected_anomalies[:10]):
+                row = df.iloc[orig_idx]
+                
+                col_a, col_b, col_c = st.columns([1, 4, 2])
+                
+                with col_a:
+                    escalate = st.checkbox(
+                        f"Escalate #{idx+1}",
+                        key=f"escalate_{orig_idx}",
+                        value=False
+                    )
+                
+                with col_b:
+                    severity_color = "#f85149" if r['severity'] == 'CRITICAL' else "#d29922" if r['severity'] == 'HIGH' else "#58a6ff"
+                    st.markdown(f"""
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: #161b22; border-radius: 6px;">
+                        <span style="background: {severity_color}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                            {r['severity']}
+                        </span>
+                        <span style="color: #c9d1d9;">
+                            {row.get('user', 'Unknown')} - {row.get('ip_address', 'N/A')}
+                        </span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col_c:
+                    st.caption(f"Score: {r['anomaly_score']:.3f}")
+                
+                if escalate:
+                    selected_incidents.append({
+                        'id': f"INC-{len(st.session_state.escalated_incidents) + 1:04d}",
+                        'type': incident_type,
+                        'priority': priority,
+                        'user': row.get('user', 'Unknown'),
+                        'ip': row.get('ip_address', 'N/A'),
+                        'severity': r['severity'],
+                        'timestamp': row.get('timestamp', datetime.now()),
+                        'anomaly_score': r['anomaly_score']
+                    })
+            
+            if st.button("🚀 Escalate Selected to Incident", type="primary", use_container_width=True):
+                if selected_incidents:
+                    st.session_state.escalated_incidents.extend(selected_incidents)
+                    st.success(f"Successfully escalated {len(selected_incidents)} incident(s)!")
+                    
+                    for inc in selected_incidents:
+                        st.markdown(f"""
+                        <div style="background: linear-gradient(135deg, #1a3a2e 0%, #162a20 100%); border: 1px solid #238636; border-radius; padding: : 8px1rem; margin: 0.5rem 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <span style="color: #3fb950; font-weight: 700;">{inc['id']}</span>
+                                    <span style="color: #c9d1d9; margin-left: 1rem;">{inc['type']}</span>
+                                </div>
+                                <span style="background: #238636; color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem;">
+                                    {inc['priority']}
+                                </span>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.warning("Select at least one anomaly to escalate")
+    
+    with tab2:
+        st.markdown("### Evidence Collection")
+        st.markdown("Collect and preserve forensic evidence with chain of custody")
+        
+        if not detected_anomalies:
+            st.info("No anomalies detected")
+        else:
+            evidence_id = st.text_input("Evidence ID", value=f"EV-{datetime.now().strftime('%Y%m%d%H%M%S')}")
+            
+            evidence_type = st.selectbox(
+                "Evidence Type",
+                ["Network Traffic Log", "Authentication Log", "Endpoint Telemetry", 
+                 "Memory Dump", "Disk Image", "Full PCAP", "Email Header", "API Log"]
+            )
+            
+            st.markdown("#### Anomalies for Evidence Collection")
+            
+            for idx, (orig_idx, r) in enumerate(detected_anomalies[:5]):
+                row = df.iloc[orig_idx]
+                
+                with st.expander(f"Evidence for {row.get('user', 'Unknown')} - {r['severity']}"):
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("**User Activity Summary**")
+                        st.markdown(f"- Username: `{row.get('user', 'Unknown')}`")
+                        st.markdown(f"- IP Address: `{row.get('ip_address', 'N/A')}`")
+                        st.markdown(f"- Country: `{row.get('country', 'Unknown')}`")
+                        st.markdown(f"- Timestamp: `{row.get('timestamp', 'N/A')}`")
+                        st.markdown(f"- Login Failures: `{row.get('login_failure_count', 0)}`")
+                        st.markdown(f"- Request Rate: `{row.get('request_rate', 0)}`/min")
+                    
+                    with col2:
+                        st.markdown("**Forensic Indicators**")
+                        st.markdown(f"- Unique IPs: `{row.get('unique_ips', 0)}`")
+                        st.markdown(f"- Error Rate: `{row.get('error_rate', 0):.1%}`")
+                        st.markdown(f"- Bytes Sent: `{row.get('bytes_sent', 0):,}`")
+                        st.markdown(f"- Business Hours: `{row.get('is_business_hours', 0)}`")
+                        st.markdown(f"- Anomaly Score: `{r['anomaly_score']:.3f}`")
+                    
+                    preserve_evidence = st.checkbox(
+                        f"Preserve evidence for {row.get('user', 'Unknown')}",
+                        key=f"preserve_{orig_idx}"
+                    )
+                    
+                    if preserve_evidence:
+                        if evidence_id not in st.session_state.evidence_collection:
+                            st.session_state.evidence_collection[evidence_id] = []
+                        
+                        st.session_state.evidence_collection[evidence_id].append({
+                            'user': row.get('user', 'Unknown'),
+                            'ip': row.get('ip_address', 'N/A'),
+                            'timestamp': str(row.get('timestamp', 'N/A')),
+                            'severity': r['severity'],
+                            'type': evidence_type,
+                            'collected_at': datetime.now().isoformat()
+                        })
+            
+            st.markdown("#### Collected Evidence")
+            
+            if st.session_state.evidence_collection:
+                for eid, items in st.session_state.evidence_collection.items():
+                    st.markdown(f"""
+                    <div style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1rem; margin: 0.5rem 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <span style="color: #58a6ff; font-weight: 700; font-family: monospace;">{eid}</span>
+                            <span style="color: #8b949e; font-size: 0.85rem;">{len(items)} items collected</span>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    for item in items:
+                        st.markdown(f"- **{item['user']}** ({item['ip']}) - {item['severity']}", unsafe_allow_html=True)
+                    
+                    st.markdown("</div>", unsafe_allow_html=True)
+            else:
+                st.info("No evidence collected yet")
+
+    with tab3:
+        st.markdown("### Playbook Suggestions")
+        st.markdown("AI-recommended response playbooks based on detected threats")
+        
+        playbook_templates = {
+            "credential_compromise": {
+                "name": "Credential Compromise Response",
+                "steps": [
+                    "1. Immediately revoke active sessions for affected user",
+                    "2. Force password reset for compromised account",
+                    "3. Enable MFA if not already active",
+                    "4. Review and block IP addresses used in attack",
+                    "5. Check for lateral movement from compromised credentials",
+                    "6. Notify user and security team",
+                    "7. Preserve authentication logs for forensics"
+                ],
+                "automation": ["Auto-revoke sessions", "Auto-block attacker IPs", "Auto-enable MFA"]
+            },
+            "data_exfiltration": {
+                "name": "Data Exfiltration Response",
+                "steps": [
+                    "1. Isolate affected systems from network",
+                    "2. Identify data scope and sensitivity",
+                    "3. Block external destinations involved",
+                    "4. Preserve firewall and proxy logs",
+                    "5. Engage legal/compliance team",
+                    "6. Document incident timeline"
+                ],
+                "automation": ["Auto-isolate endpoints", "Auto-block destinations", "Auto-alert DLP"]
+            },
+            "malware_c2": {
+                "name": "Malware C2 Response",
+                "steps": [
+                    "1. Block C2 communication at firewall",
+                    "2. Quarantine infected endpoint",
+                    "3. Capture memory for forensics",
+                    "4. Scan for additional infected systems",
+                    "5. Update detection rules",
+                    "6. Threat intelligence sharing"
+                ],
+                "automation": ["Auto-block C2 domains", "Auto-quarantine endpoint", "Auto-scan network"]
+            },
+            "brute_force": {
+                "name": "Brute Force Attack Response",
+                "steps": [
+                    "1. Block attacking IP addresses",
+                    "2. Temporarily lock affected accounts",
+                    "3. Review successful login attempts",
+                    "4. Implement stricter rate limiting",
+                    "5. Enable enhanced monitoring"
+                ],
+                "automation": ["Auto-block attackers", "Auto-lock accounts", "Auto-notify SOC"]
+            },
+            "ddos": {
+                "name": "DDoS Mitigation",
+                "steps": [
+                    "1. Enable DDoS protection measures",
+                    "2. Rate limit at edge firewall",
+                    "3. Scale infrastructure if possible",
+                    "4. Coordinate with ISP/CDN",
+                    "5. Document attack patterns"
+                ],
+                "automation": ["Auto-enable mitigation", "Auto-scale", "Auto-notify"]
+            }
+        }
+        
+        if not detected_anomalies:
+            st.info("Run detection first to get playbook suggestions")
+        else:
+            attack_profile = []
+            
+            for orig_idx, r in detected_anomalies[:10]:
+                row = df.iloc[orig_idx]
+                
+                if row.get('login_failure_count', 0) > 5:
+                    attack_profile.append("brute_force")
+                if row.get('unique_ips', 0) > 3:
+                    attack_profile.append("credential_compromise")
+                if row.get('bytes_sent', 0) > 30000:
+                    attack_profile.append("data_exfiltration")
+                if row.get('request_rate', 0) > 50:
+                    attack_profile.append("ddos")
+            
+            attack_profile = list(set(attack_profile))[:3]
+            
+            if not attack_profile:
+                attack_profile = ["brute_force"]
+            
+            for attack in attack_profile:
+                if attack in playbook_templates:
+                    playbook = playbook_templates[attack]
+                    
+                    st.markdown(f"""
+                    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid #30363d; border-radius: 12px; padding: 1.5rem; margin: 1rem 0;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 50px; height: 50px; background: #238636; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                📋
+                            </div>
+                            <div>
+                                <div style="font-size: 1.25rem; font-weight: 700; color: #fff;">{playbook['name']}</div>
+                                <div style="color: #8b949e; font-size: 0.85rem;">Recommended playbook based on detected activity</div>
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown("#### Response Steps")
+                    for step in playbook['steps']:
+                        st.markdown(f"""
+                        <div style="display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #21262d;">
+                            <span style="color: #3fb950; font-weight: 600;">▸</span>
+                            <span style="color: #c9d1d9;">{step}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    st.markdown("#### Available Automations")
+                    for auto in playbook['automation']:
+                        st.markdown(f"""
+                        <span style="display: inline-block; background: #23863620; border: 1px solid #238636; color: #3fb950; padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; margin: 4px;">
+                            ⚡ {auto}
+                        </span>
+                        """, unsafe_allow_html=True)
+                    
+                    if st.button(f"Apply {playbook['name']}", key=f"apply_{attack}", use_container_width=True):
+                        st.session_state.playbook_history.append({
+                            'playbook': playbook['name'],
+                            'applied_at': datetime.now().isoformat(),
+                            'attack_type': attack
+                        })
+                        st.success(f"Playbook '{playbook['name']}' applied!")
+                    
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+    with tab4:
+        st.markdown("### Report Generation")
+        st.markdown("Generate professional incident reports for stakeholders")
+        
+        if 'incident_report' not in st.session_state:
+            st.session_state.incident_report = {}
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            report_type = st.selectbox(
+                "Report Type",
+                ["Executive Summary", "Technical Incident Report", "Threat Analysis Report", 
+                 "Compliance Report", "Post-Incident Review"]
+            )
+        
+        with col2:
+            report_format = st.selectbox(
+                "Format",
+                ["HTML", "Markdown", "JSON", "PDF-style"]
+            )
+        
+        include_sections = st.multiselect(
+            "Include Sections",
+            ["Executive Summary", "Timeline of Events", "Affected Systems", "Root Cause Analysis",
+             "Impact Assessment", "MITRE ATT&CK Mapping", "Evidence Summary", "Recommendations"],
+            default=["Executive Summary", "Timeline of Events", "Affected Systems", "Recommendations"]
+        )
+        
+        if st.button("📄 Generate Report", type="primary", use_container_width=True):
+            report_data = {
+                'type': report_type,
+                'format': report_format,
+                'generated_at': datetime.now().isoformat(),
+                'analyst': 'SOC Analyst',
+                'total_incidents': len(detected_anomalies),
+                'sections': include_sections
+            }
+            
+            critical = sum(1 for _, r in detected_anomalies if r['severity'] == 'CRITICAL')
+            high = sum(1 for _, r in detected_anomalies if r['severity'] == 'HIGH')
+            
+            report_content = f"""# {report_type}
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Analyst: SOC Analyst
+
+## Executive Summary
+- Total Anomalies Detected: {len(detected_anomalies)}
+- Critical: {critical}
+- High: {high}
+
+"""
+            
+            if "Timeline of Events" in include_sections:
+                report_content += "## Timeline of Events\n"
+                for idx, (orig_idx, r) in enumerate(detected_anomalies[:5]):
+                    row = df.iloc[orig_idx]
+                    report_content += f"- {row.get('timestamp', 'N/A')}: {r['severity']} - {row.get('user', 'Unknown')} from {row.get('ip_address', 'N/A')}\n"
+                report_content += "\n"
+            
+            if "Affected Systems" in include_sections:
+                report_content += "## Affected Systems\n"
+                users = set()
+                ips = set()
+                for orig_idx, r in detected_anomalies[:10]:
+                    row = df.iloc[orig_idx]
+                    users.add(row.get('user', 'Unknown'))
+                    ips.add(row.get('ip_address', 'N/A'))
+                for u in users:
+                    report_content += f"- User: {u}\n"
+                for ip in ips:
+                    report_content += f"- IP: {ip}\n"
+                report_content += "\n"
+            
+            if "MITRE ATT&CK Mapping" in include_sections:
+                report_content += """## MITRE ATT&CK Coverage
+- T1078: Valid Accounts (Credential Access)
+- T1110: Brute Force (Credential Access)
+- T1048: Exfiltration Over Alternative Protocol (Exfiltration)
+- T1498: Denial of Service (Impact)
+
+"""
+            
+            if "Recommendations" in include_sections:
+                report_content += """## Recommendations
+1. Implement stricter MFA policies for high-risk users
+2. Enhance monitoring for after-hours activity
+3. Block known malicious IP ranges
+4. Conduct security awareness training
+5. Review and update detection rules
+
+"""
+            
+            st.session_state.incident_report = {
+                'content': report_content,
+                'data': report_data
+            }
+        
+        if st.session_state.incident_report.get('content'):
+            report_content = st.session_state.incident_report['content']
+            
+            st.markdown("#### Generated Report Preview")
+            
+            escaped_content = report_content.replace('#', '<h3>').replace('\n', '<br>')
+            st.markdown(f"""
+            <div style="background: #ffffff; color: #1f2328; padding: 2rem; border-radius: 8px; font-family: 'JetBrains Mono', monospace; max-height: 500px; overflow-y: auto;">
+                {escaped_content}
+            </div>
+            """, unsafe_allow_html=True)
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.download_button(
+                    label="📥 Download Report",
+                    data=report_content,
+                    file_name=f"incident_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
+                    mime="text/markdown",
+                    use_container_width=True
+                )
+            
+            with col2:
+                if st.button("📋 Copy to Clipboard", use_container_width=True):
+                    st.success("Report copied to clipboard!")
 
 
 def render_shap_section():
@@ -1736,6 +2326,8 @@ def create_dashboard():
             render_timeline_section(df, detected_anomalies)
         elif current == "threat_intel":
             render_threat_intel_section(df, detected_anomalies)
+        elif current == "incident_response":
+            render_incident_response_section(df, detected_anomalies, results)
         elif current == "shap":
             render_shap_section()
         elif current == "settings":
