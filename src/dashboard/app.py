@@ -1604,16 +1604,18 @@ def render_threat_intel_section(df, detected_anomalies):
     st.markdown("---")
     st.markdown("### Threat Indicators Summary")
     
+    # Calculate counts properly
+    brute_force_count = sum(1 for orig_idx, r in detected_anomalies if df.iloc[orig_idx].get('login_failure_count', 0) > 5)
+    account_takeover_count = sum(1 for orig_idx, r in detected_anomalies if df.iloc[orig_idx].get('unique_ips', 0) > 3)
+    exfil_count = sum(1 for orig_idx, r in detected_anomalies if df.iloc[orig_idx].get('bytes_sent', 0) > 30000)
+    dos_count = sum(1 for orig_idx, r in detected_anomalies if df.iloc[orig_idx].get('request_rate', 0) > 50)
+    
     # Create summary table
     threat_indicators = [
-        {"Type": "Brute Force", "Count": sum(1 for _, r in detected_anomalies if df.iloc[_[0]].get('login_failure_count', 0) > 5),
-         "Severity": "HIGH", "MITRE": "T1110"},
-        {"Type": "Account Takeover", "Count": sum(1 for _, r in detected_anomalies if df.iloc[_[0]].get('unique_ips', 0) > 3),
-         "Severity": "HIGH", "MITRE": "T1078"},
-        {"Type": "Data Exfiltration", "Count": sum(1 for _, r in detected_anomalies if df.iloc[_[0]].get('bytes_sent', 0) > 30000),
-         "Severity": "CRITICAL", "MITRE": "T1041"},
-        {"Type": "DoS Activity", "Count": sum(1 for _, r in detected_anomalies if df.iloc[_[0]].get('request_rate', 0) > 50),
-         "Severity": "MEDIUM", "MITRE": "T1498"},
+        {"Type": "Brute Force", "Count": brute_force_count, "Severity": "HIGH", "MITRE": "T1110"},
+        {"Type": "Account Takeover", "Count": account_takeover_count, "Severity": "HIGH", "MITRE": "T1078"},
+        {"Type": "Data Exfiltration", "Count": exfil_count, "Severity": "CRITICAL", "MITRE": "T1041"},
+        {"Type": "DoS Activity", "Count": dos_count, "Severity": "MEDIUM", "MITRE": "T1498"},
     ]
     
     for indicator in threat_indicators:
