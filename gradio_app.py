@@ -113,7 +113,7 @@ def get_overview_tab(n_events, contamination):
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font={'color': '#c9d1d9'},
-        height=300
+        height=280
     )
     
     if 'hour_of_day' in df.columns:
@@ -123,7 +123,7 @@ def get_overview_tab(n_events, contamination):
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
             font={'color': '#c9d1d9'},
-            height=300
+            height=280
         )
     else:
         activity_chart = None
@@ -135,7 +135,7 @@ def get_overview_tab(n_events, contamination):
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
             font={'color': '#c9d1d9'},
-            height=300
+            height=280
         )
     else:
         geo_chart = None
@@ -195,7 +195,7 @@ def get_anomalies_tab():
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font={'color': '#c9d1d9'},
-        height=400
+        height=350
     )
     
     summary = f"## Detected Anomalies\n\nFound **{len(detected_anomalies)}** suspicious activities. Showing top 20:"
@@ -440,23 +440,23 @@ def create_app():
                     gr.Markdown("## 📊 Security Overview")
                     overview_msg = gr.Markdown("Click **Run Detection** to analyze events")
                     with gr.Row():
-                        severity_chart = gr.Plot(height=280)
-                        activity_chart = gr.Plot(height=280)
+                        severity_chart = gr.Plot()
+                        activity_chart = gr.Plot()
                     with gr.Row():
-                        geo_chart = gr.Plot(height=280)
+                        geo_chart = gr.Plot()
                 
                 # Anomalies Section  
                 with gr.Group(visible=False) as anomalies_section:
                     gr.Markdown("## ⚠️ Detected Anomalies")
                     anomaly_msg = gr.Markdown("Run detection first")
-                    anomaly_table = gr.DataFrame(height=200)
-                    anomaly_chart = gr.Plot(height=350)
+                    anomaly_table = gr.DataFrame()
+                    anomaly_chart = gr.Plot()
                 
                 # SHAP Section
                 with gr.Group(visible=False) as shap_section:
                     gr.Markdown("## 🧠 SHAP Explainability")
                     shap_msg = gr.Markdown("Run detection first")
-                    shap_plot = gr.Plot(height=400)
+                    shap_plot = gr.Plot()
                 
                 # Demo Section
                 with gr.Group(visible=False) as demo_section:
@@ -473,7 +473,7 @@ def create_app():
                 with gr.Group(visible=False) as incident_section:
                     gr.Markdown("## 🚨 Incident Response")
                     incident_msg = gr.Markdown()
-                    incident_table = gr.DataFrame(height=250)
+                    incident_table = gr.DataFrame()
                 
                 # Portfolio Section
                 with gr.Group(visible=False) as portfolio_section:
