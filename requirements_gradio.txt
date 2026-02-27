@@ -1,0 +1,9 @@
+# Gradio requirements for SOC Sentinel
+gradio>=4.0.0
+gradio-client>=0.10.0
+pandas
+numpy
+scikit-learn
+shap
+plotly
+kaleido
