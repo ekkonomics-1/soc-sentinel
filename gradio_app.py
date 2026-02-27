@@ -51,7 +51,9 @@ global_state = {
     "results": [],
     "X_scaled": None,
     "available_features": [],
-    "shap_initialized": False
+    "shap_initialized": False,
+    "escalated_incidents": [],
+    "generated_report": ""
 }
 
 
@@ -298,33 +300,46 @@ def get_incident_tab():
     df = global_state.get("events_df")
     
     if not results:
-        return "Run detection first", None
+        return "Run detection first", None, None, None, None
     
     detected_anomalies = [(i, r) for i, r in enumerate(results) if r['is_anomaly']]
     
-    incident_html = """## 🚀 Incident Response
+    if not detected_anomalies:
+        return "No anomalies detected", None, None, None, None
+    
+    anomaly_list = []
+    for i, (orig_idx, r) in enumerate(detected_anomalies[:10]):
+        row = df.iloc[orig_idx]
+        anomaly_list.append({
+            "Select": False,
+            "Index": i + 1,
+            "User": row.get('user', 'Unknown'),
+            "IP": row.get('ip_address', 'N/A'),
+            "Severity": r.get('severity', 'MEDIUM'),
+            "Score": round(r['anomaly_score'], 3)
+        })
+    
+    playbook_html = """### 📋 Available Playbooks
 
-Escalate detected anomalies to incidents with one click.
+| Playbook | Description | Steps |
+|----------|-------------|-------|
+| **Credential Compromise** | Response to stolen credentials | 7 steps |
+| **Data Exfiltration** | Response to data theft | 6 steps |
+| **Malware C2** | Response to malware infection | 6 steps |
+| **Brute Force** | Response to password attacks | 5 steps |
 
 """
-    
-    if detected_anomalies:
-        incident_html += f"**{len(detected_anomalies)}** anomalies ready for escalation\n\n"
-        incident_html += "### Quick Actions:\n\n"
-        incident_html += "- ✅ Select anomalies to escalate\n"
-        incident_html += "- 📋 Generate incident report\n"
-        incident_html += "- 🔍 Collect forensic evidence\n"
-        incident_html += "- 📋 Apply response playbook\n\n"
-        incident_html += "---\n\n"
-        incident_html += "### Sample Escalated Incidents:\n\n"
-        
-        for i, (orig_idx, r) in enumerate(detected_anomalies[:3]):
-            row = df.iloc[orig_idx]
-            incident_html += f"- **{r.get('severity', 'MEDIUM')}**: {row.get('user', 'Unknown')} - {row.get('ip_address', 'N/A')}\n"
-    else:
-        incident_html += "No anomalies detected yet. Run detection first."
-    
-    return incident_html, detected_anomalies
+
+    report_html = """### 📄 Report Generation
+
+Click **Generate Report** to create an incident report with:
+- Executive Summary
+- Timeline of Events
+- Affected Systems
+- Recommendations
+"""
+
+    return f"**{len(detected_anomalies)}** anomalies ready for escalation", anomaly_list, playbook_html, report_html, detected_anomalies
 
 
 def get_portfolio_tab():
@@ -472,8 +487,58 @@ def create_app():
                 # Incident Response Section
                 with gr.Group(visible=False) as incident_section:
                     gr.Markdown("## 🚨 Incident Response")
-                    incident_msg = gr.Markdown()
+                    
+                    with gr.Row():
+                        incident_msg = gr.Markdown("Run detection first")
+                        incident_type = gr.Dropdown(
+                            ["Suspected Breach", "Malware Detection", "Data Exfiltration", 
+                             "Credential Compromise", "DDoS Attack", "Other"],
+                            label="Incident Type",
+                            value="Suspected Breach"
+                        )
+                        priority = gr.Dropdown(
+                            ["P1 - Critical", "P2 - High", "P3 - Medium", "P4 - Low"],
+                            label="Priority",
+                            value="P2 - High"
+                        )
+                    
+                    gr.Markdown("### Select Anomalies to Escalate")
                     incident_table = gr.DataFrame()
+                    
+                    with gr.Row():
+                        escalate_btn = gr.Button("🚀 Escalate Selected", variant="primary")
+                        evidence_btn = gr.Button("🔍 Collect Evidence")
+                        playbook_btn = gr.Button("📋 Apply Playbook")
+                        report_btn = gr.Button("📄 Generate Report", variant="primary")
+                    
+                    gr.Markdown("---")
+                    
+                    with gr.Tab("📋 Playbooks"):
+                        playbook_content = gr.Markdown("""
+### Available Response Playbooks
+
+| Playbook | Description |
+|----------|-------------|
+| **Credential Compromise** | Force password reset, revoke sessions, enable MFA |
+| **Data Exfiltration** | Isolate systems, block destinations, notify legal |
+| **Malware C2** | Block C2, quarantine endpoint, capture memory |
+| **Brute Force** | Block attackers, lock accounts, review logs |
+""")
+                    
+                    with gr.Tab("📄 Report"):
+                        report_content = gr.Markdown("""
+### Incident Report
+
+Click **Generate Report** to create a professional incident report.
+
+Report includes:
+- Executive Summary
+- Timeline of Events  
+- Affected Systems
+- Root Cause Analysis
+- MITRE ATT&CK Mapping
+- Recommendations
+""")
                 
                 # Portfolio Section
                 with gr.Group(visible=False) as portfolio_section:
@@ -522,14 +587,17 @@ def create_app():
                     demo_content: msg}
         
         def show_incident():
-            msg, _ = get_incident_tab()
+            msg, table, playbook, report, anomalies = get_incident_tab()
             return {overview_section: gr.update(visible=False),
                     anomalies_section: gr.update(visible=False),
                     shap_section: gr.update(visible=False),
                     demo_section: gr.update(visible=False),
                     incident_section: gr.update(visible=True),
                     portfolio_section: gr.update(visible=False),
-                    incident_msg: msg}
+                    incident_msg: msg,
+                    incident_table: table,
+                    playbook_content: playbook,
+                    report_content: report}
         
         def show_portfolio():
             msg = get_portfolio_tab()
@@ -546,15 +614,80 @@ def create_app():
         btn_anomalies.click(show_anomalies, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section])
         btn_shap.click(show_shap, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section])
         btn_demo.click(show_demo, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section, demo_content])
-        btn_incident.click(show_incident, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section, incident_msg])
+        btn_incident.click(show_incident, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section, incident_msg, incident_table, playbook_content, report_content])
         btn_portfolio.click(show_portfolio, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section, portfolio_msg])
+        
+        # Escalate button handler
+        def handle_escalate(incident_type_val, priority_val, table_data):
+            if table_data is None or len(table_data) == 0:
+                return "No anomalies selected", "No incidents to escalate"
+            
+            selected = [row for row in table_data if row.get('Select', False)]
+            if not selected:
+                return "Select at least one anomaly to escalate", f"No incidents escalated"
+            
+            count = len(selected)
+            incident_id = f"INC-{len(global_state['escalated_incidents']) + 1:04d}"
+            global_state['escalated_incidents'].append({
+                'id': incident_id,
+                'type': incident_type_val,
+                'priority': priority_val,
+                'count': count,
+                'timestamp': datetime.now().isoformat()
+            })
+            
+            return f"✅ Successfully escalated {count} anomaly(ies) to {incident_id}", f"Escalated: {incident_type_val} ({priority_val}) - {count} items"
+        
+        escalate_btn.click(handle_escalate, inputs=[incident_type, priority, incident_table], outputs=[incident_msg, report_content])
+        
+        # Report generation handler
+        def handle_report(incident_type_val, priority_val):
+            df = global_state.get("events_df")
+            results = global_state.get("results", [])
+            detected_anomalies = [(i, r) for i, r in enumerate(results) if r['is_anomaly']]
+            
+            if not detected_anomalies:
+                return "No data to generate report"
+            
+            critical = sum(1 for _, r in detected_anomalies if r.get('severity') == 'CRITICAL')
+            high = sum(1 for _, r in detected_anomalies if r.get('severity') == 'HIGH')
+            
+            report = f"""# Incident Report - {incident_type_val}
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Priority: {priority_val}
+
+## Executive Summary
+- Total Anomalies Detected: {len(detected_anomalies)}
+- Critical: {critical}
+- High: {high}
+
+## Affected Systems
+"""
+            for i, (orig_idx, r) in enumerate(detected_anomalies[:10]):
+                row = df.iloc[orig_idx]
+                report += f"- {row.get('user', 'Unknown')} ({row.get('ip_address', 'N/A')}) - {r.get('severity', 'MEDIUM')}\n"
+            
+            report += """
+## Recommendations
+1. Implement stricter MFA policies
+2. Review and block suspicious IPs
+3. Conduct security awareness training
+4. Update detection rules
+
+---
+*Report generated by SOC Sentinel*
+"""
+            global_state['generated_report'] = report
+            return report
+        
+        report_btn.click(handle_report, inputs=[incident_type, priority], outputs=[report_content])
         
         # Run detection handler - runs all and shows overview
         def run_all(n, c):
             msg1, fig1, fig2, fig3, _, _ = get_overview_tab(n, c)
             msg2, df2, fig4 = get_anomalies_tab()
             msg3, fig5, _ = get_shap_tab()
-            msg4, data5 = get_incident_tab()
+            msg4, table4, playbook4, report4, anomalies4 = get_incident_tab()
             msg5 = get_portfolio_tab()
             return {
                 overview_section: gr.update(visible=True),
@@ -573,7 +706,9 @@ def create_app():
                 shap_msg: msg3,
                 shap_plot: fig5,
                 incident_msg: msg4,
-                incident_table: data5,
+                incident_table: table4,
+                playbook_content: playbook4,
+                report_content: report4,
                 portfolio_msg: msg5
             }
         
@@ -654,4 +789,4 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.launch(server_name="0.0.0.0", server_port=7860)
+    app.launch(server_name="0.0.0.0", server_port=7861)
