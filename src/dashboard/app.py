@@ -587,6 +587,7 @@ def create_sidebar():
             ("threat_intel", "Threat Intel", "globe"),
             ("incident_response", "Incident Response", "rocket"),
             ("shap", "SHAP Analysis", "psychology"),
+            ("portfolio", "Portfolio Mode", "briefcase"),
             ("settings", "Settings", "settings"),
         ]
         
@@ -604,6 +605,7 @@ def create_sidebar():
                 "checklist": "☑",
                 "clock": "⏱",
                 "rocket": "🚀",
+                "briefcase": "💼",
                 "psychology": "◈",
                 "settings": "⚙"
             }
@@ -2220,6 +2222,479 @@ Analyst: SOC Analyst
                     st.success("Report copied to clipboard!")
 
 
+def render_portfolio_section():
+    st.markdown('<h1 class="page-title">Portfolio Mode</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="page-subtitle">Demo Mode, Tutorials, and Export for your portfolio</p>', unsafe_allow_html=True)
+    
+    tab1, tab2, tab3, tab4 = st.tabs(["🎯 Demo Mode", "📚 Live Tutorial", "📸 Screenshot Export", "🐳 Docker Deploy"])
+    
+    with tab1:
+        st.markdown("### 🎯 Interactive Attack Scenario Demos")
+        st.markdown("Walk through realistic attack scenarios for presentations")
+        
+        if 'demo_state' not in st.session_state:
+            st.session_state.demo_state = {'step': 0, 'scenario': None}
+        
+        scenario = st.selectbox(
+            "Select Attack Scenario",
+            ["Brute Force Attack", "Credential Stuffing", "Data Exfiltration", "DDoS Attack", "Lateral Movement"]
+        )
+        
+        demo_scenarios = {
+            "Brute Force Attack": {
+                "description": "Watch how our system detects a brute force attack in real-time",
+                "steps": [
+                    {"title": "Step 1: Reconnaissance", "content": "Attacker scans for valid usernames using common patterns"},
+                    {"title": "Step 2: Password Spraying", "content": "Attacker tries common passwords across multiple accounts"},
+                    {"title": "Step 3: Account Lockout", "content": "System detects unusual login failure patterns"},
+                    {"title": "Step 4: Alert Generated", "content": "SOC Sentinel flags the activity as anomalous"},
+                    {"title": "Step 5: SHAP Explanation", "content": "AI explains: 'login_failure_count' was the key indicator"}
+                ]
+            },
+            "Credential Stuffing": {
+                "description": "See how we identify credential stuffing attacks",
+                "steps": [
+                    {"title": "Step 1: Stolen Credentials", "content": "Attacker uses compromised credentials from data breach"},
+                    {"title": "Step 2: Multi-IP Login Attempts", "content": "Same credentials tried from different IP addresses"},
+                    {"title": "Step 3: Geographic Anomaly", "content": "Impossible travel - logins from distant locations"},
+                    {"title": "Step 4: Anomaly Detection", "content": "Isolation Forest flags unusual user behavior"},
+                    {"title": "Step 5: Threat Intel Lookup", "content": "IP checked against known malicious sources"}
+                ]
+            },
+            "Data Exfiltration": {
+                "description": "Demonstrate detection of data exfiltration attempts",
+                "steps": [
+                    {"title": "Step 1: Baseline Behavior", "content": "System learns normal data transfer patterns per user"},
+                    {"title": "Step 2: Unusual Volume", "content": "Large data transfer detected outside business hours"},
+                    {"title": "Step 3: Destination Analysis", "content": "External IP analyzed for malicious activity"},
+                    {"title": "Step 4: Severity Scoring", "content": "High anomaly score triggers critical alert"},
+                    {"title": "Step 5: Response Playbook", "content": "Recommended containment actions displayed"}
+                ]
+            },
+            "DDoS Attack": {
+                "description": "Watch volumetric attack detection in action",
+                "steps": [
+                    {"title": "Step 1: Traffic Spike", "content": "Sudden increase in request rate detected"},
+                    {"title": "Step 2: Pattern Analysis", "content": "Requests show attack signature patterns"},
+                    {"title": "Step 3: Geographic Distribution", "content": "Attack traffic from multiple countries"},
+                    {"title": "Step 4: Auto-Escalation", "content": "Incident ticket created automatically"},
+                    {"title": "Step 5: Mitigation Suggested", "content": "Rate limiting and blocking recommended"}
+                ]
+            },
+            "Lateral Movement": {
+                "description": "See detection of privilege escalation and lateral movement",
+                "steps": [
+                    {"title": "Step 1: Initial Access", "content": "Compromised credential used for initial login"},
+                    {"title": "Step 2: Privilege Escalation", "content": "Unusual admin access attempts detected"},
+                    {"title": "Step 3: Multiple System Access", "content": "User accessing systems outside normal scope"},
+                    {"title": "Step 4: Behavioral Analysis", "content": "ML model identifies anomalous access patterns"},
+                    {"title": "Step 5: MITRE Mapping", "content": "Attack mapped to T1021 - Lateral Movement"}
+                ]
+            }
+        }
+        
+        current_demo = demo_scenarios.get(scenario, demo_scenarios["Brute Force Attack"])
+        
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid #30363d; border-radius: 12px; padding: 1.5rem; margin: 1rem 0;">
+            <div style="font-size: 1.1rem; font-weight: 600; color: #fff; margin-bottom: 0.5rem;">
+                {scenario}
+            </div>
+            <div style="color: #8b949e; font-size: 0.9rem;">
+                {current_demo['description']}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        step = st.slider("Demo Step", 0, len(current_demo['steps']) - 1, st.session_state.demo_state.get('step', 0))
+        st.session_state.demo_state['step'] = step
+        
+        current_step = current_demo['steps'][step]
+        
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            st.markdown(f"""
+            <div style="background: #161b22; border-left: 4px solid #58a6ff; padding: 1.5rem; border-radius: 0 8px 8px 0; margin: 1rem 0;">
+                <div style="color: #58a6ff; font-weight: 700; font-size: 1.25rem; margin-bottom: 0.75rem;">
+                    {current_step['title']}
+                </div>
+                <div style="color: #c9d1d9; font-size: 1rem; line-height: 1.6;">
+                    {current_step['content']}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+            <div style="text-align: center; padding: 2rem 1rem;">
+                <div style="font-size: 3rem; font-weight: 700; color: #58a6ff;">{step + 1}</div>
+                <div style="color: #8b949e; font-size: 0.85rem;">of {len(current_demo['steps'])}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        col_prev, col_next = st.columns(2)
+        
+        with col_prev:
+            if st.button("◀ Previous Step", use_container_width=True, disabled=step == 0):
+                st.session_state.demo_state['step'] = step - 1
+                st.rerun()
+        
+        with col_next:
+            if st.button("Next Step ▶", use_container_width=True, disabled=step == len(current_demo['steps']) - 1):
+                st.session_state.demo_state['step'] = step + 1
+                st.rerun()
+        
+        st.markdown("---")
+        
+        col_full, col_end = st.columns([3, 1])
+        with col_full:
+            st.info("💡 **Tip for presentations**: Use the slider to navigate through each step, explaining the detection logic at each stage.")
+        with col_end:
+            if st.button("▶ Run Full Demo", type="primary", use_container_width=True):
+                st.balloons()
+                st.success("Demo mode activated! This would auto-run through all steps in presentation mode.")
+    
+    with tab2:
+        st.markdown("### 📚 Interactive Tutorial")
+        st.markdown("Learn how to use SOC Sentinel with step-by-step explanations")
+        
+        tutorial_sections = [
+            {
+                "title": "1. Dashboard Overview",
+                "content": """
+                The main dashboard shows real-time security metrics:
+                - **Total Events**: Number of log events analyzed
+                - **Anomalies Detected**: Suspicious activities flagged by AI
+                - **Severity Breakdown**: Critical, High, Medium alerts
+                - **Anomaly Score**: How suspicious each event is (0-1 scale)
+                """,
+                "icon": "📊"
+            },
+            {
+                "title": "2. SHAP Explainability",
+                "content": """
+                SHAP (SHapley Additive exPlanations) explains why AI flagged an alert:
+                - **Force Plots**: Visual explanation of feature contributions
+                - **Waterfall Charts**: Step-by-step feature impact
+                - **Feature Importance**: Which features matter most
+                
+                This is crucial for SOC analysts to understand and justify decisions.
+                """,
+                "icon": "🧠"
+            },
+            {
+                "title": "3. Threat Intelligence",
+                "content": """
+                Integration with VirusTotal for IP reputation:
+                - Look up any suspicious IP
+                - See detection rates across 70+ vendors
+                - View detailed analysis results
+                - Check ASN and geographic data
+                
+                Skills: OSINT, threat intelligence platforms
+                """,
+                "icon": "🔍"
+            },
+            {
+                "title": "4. Incident Response",
+                "content": """
+                Full incident response workflow:
+                - **Escalation**: One-click to create incident tickets
+                - **Evidence Collection**: Preserve forensic data
+                - **Playbooks**: Recommended response procedures
+                - **Reports**: Generate stakeholder documentation
+                
+                Skills: IR workflow, documentation, SOAR
+                """,
+                "icon": "🚨"
+            },
+            {
+                "title": "5. MITRE ATT&CK",
+                "content": """
+                Threats are mapped to MITRE ATT&CK framework:
+                - Understand attacker tactics and techniques
+                - See coverage across kill chain stages
+                - Improve detection rules based on gaps
+                
+                Skills: Threat modeling, defense planning
+                """,
+                "icon": "🎯"
+            }
+        ]
+        
+        tutorial_idx = st.radio(
+            "Tutorial Sections",
+            range(len(tutorial_sections)),
+            format_func=lambda x: f"{tutorial_sections[x]['icon']} {tutorial_sections[x]['title']}"
+        )
+        
+        current_tutorial = tutorial_sections[tutorial_idx]
+        
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1a2a1a 0%, #162116 100%); border: 1px solid #238636; border-radius: 12px; padding: 2rem; margin: 1rem 0;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem;">
+                {current_tutorial['icon']} {current_tutorial['title']}
+            </div>
+            <div style="color: #c9d1d9; font-size: 1rem; line-height: 1.8; white-space: pre-line;">
+                {current_tutorial['content']}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        col_prev_t, col_next_t = st.columns(2)
+        
+        with col_prev_t:
+            if st.button("◀ Previous", use_container_width=True, disabled=tutorial_idx == 0):
+                st.rerun()
+        
+        with col_next_t:
+            if st.button("Next ▶", use_container_width=True, disabled=tutorial_idx == len(tutorial_sections) - 1):
+                st.rerun()
+        
+        st.markdown("---")
+        
+        st.markdown("#### 📋 Skills Demonstrated")
+        
+        skills = [
+            ("Machine Learning", "Isolation Forest, SHAP for anomaly detection and explainability"),
+            ("Threat Intelligence", "VirusTotal API integration, OSINT"),
+            ("Incident Response", "Escalation workflows, evidence collection, playbooks"),
+            ("Security Analysis", "MITRE ATT&CK, detection rules, KQL queries"),
+            ("DevOps", "Docker deployment, CI/CD readiness"),
+            ("Communication", "Report generation, stakeholder documentation")
+        ]
+        
+        for skill, desc in skills:
+            st.markdown(f"""
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: #161b22; border-radius: 8px; margin: 0.5rem 0;">
+                <span style="color: #3fb950; font-weight: 600; min-width: 150px;">{skill}</span>
+                <span style="color: #8b949e;">{desc}</span>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with tab3:
+        st.markdown("### 📸 Blog-Ready Screenshots")
+        st.markdown("Export clean, professional screenshots for your portfolio")
+        
+        st.markdown("#### Recommended Screenshots")
+        
+        screenshot_guide = [
+            {"section": "Overview Dashboard", "description": "Shows metrics and system status", "tips": "Use 'Overview' section with high anomaly count"},
+            {"section": "SHAP Analysis", "description": "Feature importance and explanations", "tips": "Use waterfall plot for blog feature"},
+            {"section": "Threat Intel", "description": "VirusTotal lookup results", "tips": "Select a known malicious IP"},
+            {"section": "Incident Response", "description": "Report generation preview", "tips": "Generate an executive report"},
+            {"section": "MITRE ATT&CK", "description": "Coverage heatmap", "tips": "Show comprehensive coverage"}
+        ]
+        
+        for i, shot in enumerate(screenshot_guide):
+            with st.expander(f"{shot['section']}"):
+                st.markdown(f"**Description**: {shot['description']}")
+                st.markdown(f"**Tips**: {shot['tips']}")
+                
+                if st.button(f"Navigate to {shot['section']}", key=f"nav_screenshot_{i}"):
+                    st.session_state.current_section = shot['section'].lower().replace(" ", "_").replace("_dashboard", "").replace("analysis", "shap").replace("threat_intel", "threat_intel").replace("incident_response", "incident_response").replace("mitre_att&ck", "threats")
+                    st.rerun()
+        
+        st.markdown("---")
+        
+        st.markdown("#### 🎨 Branding Tips")
+        
+        st.markdown("""
+        <div style="background: #161b22; border-radius: 8px; padding: 1.5rem; margin: 1rem 0;">
+            <div style="color: #c9d1d9; line-height: 1.8;">
+                <strong style="color: #58a6ff;">For your portfolio/blog:</strong><br><br>
+                • Use dark theme screenshots (already optimized!)<br>
+                • Highlight the SHAP explainability - it's unique<br>
+                • Show the full workflow: detection → investigation → response<br>
+                • Include MITRE ATT&CK mapping for credibility<br>
+                • Demo the VirusTotal integration<br>
+                <br>
+                <strong style="color: #3fb950;">Recommended blog post structure:</strong><br><br>
+                1. Problem: SOC analyst shortage, need automation<br>
+                2. Solution: ML-based anomaly detection with SHAP<br>
+                3. Architecture: Streamlit + Isolation Forest + SHAP<br>
+                4. Demo: Walk through attack scenarios<br>
+                5. Results: Detection rates, false positive reduction<br>
+                6. Future: SIEM integration, more ML models
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("📥 Export Portfolio Summary", type="primary", use_container_width=True):
+            portfolio_summary = """# SOC Sentinel - Security Operations Center Anomaly Detection
+
+## Project Overview
+AI-powered SOC anomaly detection dashboard with full explainability
+
+## Features
+- Real-time anomaly detection using Isolation Forest
+- SHAP-based explainable AI
+- VirusTotal threat intelligence integration
+- MITRE ATT&CK framework mapping
+- Incident response workflow
+- Professional incident reporting
+
+## Technical Stack
+- Python/Streamlit
+- Scikit-learn (Isolation Forest)
+- SHAP for explainability
+- VirusTotal API
+- Plotly for visualizations
+
+## Skills Demonstrated
+- Machine Learning & AI
+- Threat Intelligence
+- Incident Response
+- Security Analysis
+- DevOps & Deployment
+- Technical Communication
+
+## Links
+- GitHub: https://github.com/ekkonomics-1/soc-sentinel
+- Live Demo: [Run locally with Docker]
+"""
+            st.download_button(
+                label="📄 Download Portfolio Summary (Markdown)",
+                data=portfolio_summary,
+                file_name="SOC_Sentinel_Portfolio_Summary.md",
+                mime="text/markdown",
+                use_container_width=True
+            )
+    
+    with tab4:
+        st.markdown("### 🐳 Docker Deployment")
+        st.markdown("Deploy SOC Sentinel with Docker - DevOps skills demonstrated")
+        
+        st.markdown("#### Quick Start")
+        
+        st.code("""# Pull and run the container
+docker pull your-registry/soc-sentinel:latest
+docker run -p 8501:8501 soc-sentinel:latest
+
+# Or build from source
+docker build -t soc-sentinel .
+docker run -p 8501:8501 soc-sentinel""", language="bash")
+        
+        st.markdown("#### Docker Compose (Recommended)")
+        
+        st.code("""version: '3.8'
+services:
+  soc-sentinel:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - VT_API_KEY=${VT_API_KEY}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501"]
+      interval: 30s
+      timeout: 10s
+      retries: 3""", language="yaml")
+        
+        st.markdown("#### Kubernetes Deployment")
+        
+        st.code("""apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: soc-sentinel
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: soc-sentinel
+  template:
+    metadata:
+      labels:
+        app: soc-sentinel
+    spec:
+      containers:
+      - name: soc-sentinel
+        image: soc-sentinel:latest
+        ports:
+        - containerPort: 8501
+        env:
+        - name: VT_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: vt-secrets
+              key: api-key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+""", language="yaml")
+        
+        st.markdown("#### Environment Variables")
+        
+        env_vars = [
+            ("VT_API_KEY", "VirusTotal API key for threat intelligence"),
+            ("LOG_LEVEL", "Logging level (INFO, DEBUG)"),
+            ("CONTAMINATION", "Anomaly detection threshold (0.01-0.2)"),
+        ]
+        
+        for var, desc in env_vars:
+            st.markdown(f"- `{var}`: {desc}")
+        
+        st.markdown("#### CI/CD Pipeline Example")
+        
+        st.code("""# GitHub Actions
+name: Deploy to Docker Hub
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker image
+        run: docker build -t soc-sentinel:${{ github.sha }} .
+      - name: Push to registry
+        run: |
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker push soc-sentinel:${{ github.sha }}""", language="yaml")
+        
+        col_docker1, col_docker2 = st.columns(2)
+        
+        with col_docker1:
+            if st.button("📦 Generate Dockerfile", use_container_width=True):
+                dockerfile_content = """FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 8501
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8501/_stcore/health || exit 1
+
+CMD ["streamlit", "run", "src/dashboard/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+"""
+                st.download_button(
+                    label="📥 Download Dockerfile",
+                    data=dockerfile_content,
+                    file_name="Dockerfile",
+                    mime="text/plain",
+                    use_container_width=True
+                )
+        
+        with col_docker2:
+            st.info("💡 The Dockerfile is ready to use! Download and add to your project.")
+
+
 def render_shap_section():
     st.markdown('<h1 class="page-title">SHAP Analysis</h1>', unsafe_allow_html=True)
     st.markdown('<p class="page-subtitle">Explainable AI - Why threats were detected</p>', unsafe_allow_html=True)
@@ -2330,6 +2805,8 @@ def create_dashboard():
             render_incident_response_section(df, detected_anomalies, results)
         elif current == "shap":
             render_shap_section()
+        elif current == "portfolio":
+            render_portfolio_section()
         elif current == "settings":
             render_settings_section()
 
