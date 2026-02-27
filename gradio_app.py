@@ -372,71 +372,225 @@ docker run -p 7860:7860 soc-sentinel
 def create_app():
     with gr.Blocks(title="SOC Sentinel - Anomaly Detection", theme=gr.themes.Soft()) as app:
         gr.Markdown("""
-        <div style="background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-            <h1 style="color: #fff; margin: 0;">🛡️ SOC Sentinel</h1>
-            <p style="color: #8b949e; margin: 0;">AI-Powered Security Operations Center</p>
+        <style>
+        .header {
+            background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .header h1 { color: #fff; margin: 0; }
+        .header p { color: #8b949e; margin: 0; }
+        </style>
+        <div class="header">
+            <h1>🛡️ SOC Sentinel</h1>
+            <p>AI-Powered Security Operations Center</p>
         </div>
         """, elem_id="header")
         
         with gr.Row():
-            with gr.Column(scale=1):
+            # Left Sidebar - Navigation & Config
+            with gr.Column(scale=1, variant="panel"):
+                gr.Markdown("### 📍 Navigation")
+                
+                nav_buttons = []
+                
+                btn_overview = gr.Button("📊 Overview", size="sm", variant="secondary")
+                nav_buttons.append(btn_overview)
+                
+                btn_anomalies = gr.Button("⚠️ Anomalies", size="sm", variant="secondary")
+                nav_buttons.append(btn_anomalies)
+                
+                btn_shap = gr.Button("🧠 SHAP Analysis", size="sm", variant="secondary")
+                nav_buttons.append(btn_shap)
+                
+                btn_demo = gr.Button("🎯 Demo Mode", size="sm", variant="secondary")
+                nav_buttons.append(btn_demo)
+                
+                btn_incident = gr.Button("🚨 Incident Response", size="sm", variant="secondary")
+                nav_buttons.append(btn_incident)
+                
+                btn_portfolio = gr.Button("💼 Portfolio", size="sm", variant="secondary")
+                nav_buttons.append(btn_portfolio)
+                
+                gr.Markdown("---")
+                
                 gr.Markdown("### ⚙️ Configuration")
                 n_events = gr.Slider(500, 5000, 2000, step=100, label="Events to Analyze")
                 contamination = gr.Slider(1, 20, 5, step=1, label="Anomaly Threshold (%)")
-                run_btn = gr.Button("▶ Run Detection", variant="primary")
+                
+                run_btn = gr.Button("▶ Run Detection", variant="primary", size="lg")
+                
                 gr.Markdown("---")
                 gr.Markdown("""
-                <div style="font-size: 0.8rem; color: #8b949e;">
+                <div style="font-size: 0.75rem; color: #8b949e; text-align: center;">
                     <b>Skills Demonstrated:</b><br>
-                    • Machine Learning<br>
-                    • Threat Intelligence<br>
-                    • Incident Response<br>
-                    • DevOps
+                    🤖 Machine Learning<br>
+                    🔍 Threat Intelligence<br>
+                    🚨 Incident Response<br>
+                    🐳 DevOps
                 </div>
                 """)
             
+            # Main Content Area
             with gr.Column(scale=4):
-                with gr.Tabs():
-                    with gr.Tab("📊 Overview"):
-                        overview_msg = gr.Markdown("Click 'Run Detection' to start")
-                        with gr.Row():
-                            severity_chart = gr.Plot()
-                            activity_chart = gr.Plot()
-                        with gr.Row():
-                            geo_chart = gr.Plot()
-                    
-                    with gr.Tab("⚠️ Anomalies"):
-                        anomaly_msg = gr.Markdown("Run detection first")
-                        anomaly_table = gr.DataFrame()
-                        anomaly_chart = gr.Plot()
-                    
-                    with gr.Tab("🧠 SHAP Analysis"):
-                        shap_msg = gr.Markdown("Run detection first")
-                        shap_plot = gr.Plot()
-                    
-                    with gr.Tab("🎯 Demo Mode"):
-                        demo_msg = gr.Markdown()
-                        scenarios_dropdown = gr.Dropdown(
-                            ["Brute Force Attack", "Credential Stuffing", "Data Exfiltration"],
-                            label="Select Scenario",
-                            value="Brute Force Attack"
-                        )
-                        step_slider = gr.Slider(0, 3, 0, step=1, label="Demo Step")
-                        demo_content = gr.Markdown()
-                    
-                    with gr.Tab("🚨 Incident Response"):
-                        incident_msg = gr.Markdown()
-                        incident_table = gr.DataFrame()
-                    
-                    with gr.Tab("💼 Portfolio"):
-                        portfolio_msg = gr.Markdown()
+                # Overview Section
+                with gr.Group(visible=True) as overview_section:
+                    gr.Markdown("## 📊 Security Overview")
+                    overview_msg = gr.Markdown("Click **Run Detection** to analyze events")
+                    with gr.Row():
+                        severity_chart = gr.Plot(height=280)
+                        activity_chart = gr.Plot(height=280)
+                    with gr.Row():
+                        geo_chart = gr.Plot(height=280)
+                
+                # Anomalies Section  
+                with gr.Group(visible=False) as anomalies_section:
+                    gr.Markdown("## ⚠️ Detected Anomalies")
+                    anomaly_msg = gr.Markdown("Run detection first")
+                    anomaly_table = gr.DataFrame(height=200)
+                    anomaly_chart = gr.Plot(height=350)
+                
+                # SHAP Section
+                with gr.Group(visible=False) as shap_section:
+                    gr.Markdown("## 🧠 SHAP Explainability")
+                    shap_msg = gr.Markdown("Run detection first")
+                    shap_plot = gr.Plot(height=400)
+                
+                # Demo Section
+                with gr.Group(visible=False) as demo_section:
+                    gr.Markdown("## 🎯 Interactive Attack Scenarios")
+                    scenarios_dropdown = gr.Dropdown(
+                        ["Brute Force Attack", "Credential Stuffing", "Data Exfiltration"],
+                        label="Select Scenario",
+                        value="Brute Force Attack"
+                    )
+                    step_slider = gr.Slider(0, 3, 0, step=1, label="Demo Step")
+                    demo_content = gr.Markdown()
+                
+                # Incident Response Section
+                with gr.Group(visible=False) as incident_section:
+                    gr.Markdown("## 🚨 Incident Response")
+                    incident_msg = gr.Markdown()
+                    incident_table = gr.DataFrame(height=250)
+                
+                # Portfolio Section
+                with gr.Group(visible=False) as portfolio_section:
+                    portfolio_msg = gr.Markdown()
         
-        def update_overview(n, c):
-            return get_overview_tab(n, c)
+        # Footer
+        gr.Markdown("""
+        <div style="text-align: center; padding: 1rem; color: #6e7681; font-size: 0.75rem;">
+            SOC Sentinel v2.0 | Built with Gradio + Isolation Forest + SHAP
+        </div>
+        """)
         
+        # Navigation handlers
+        def show_overview():
+            return {overview_section: gr.update(visible=True),
+                    anomalies_section: gr.update(visible=False),
+                    shap_section: gr.update(visible=False),
+                    demo_section: gr.update(visible=False),
+                    incident_section: gr.update(visible=False),
+                    portfolio_section: gr.update(visible=False)}
+        
+        def show_anomalies():
+            return {overview_section: gr.update(visible=False),
+                    anomalies_section: gr.update(visible=True),
+                    shap_section: gr.update(visible=False),
+                    demo_section: gr.update(visible=False),
+                    incident_section: gr.update(visible=False),
+                    portfolio_section: gr.update(visible=False)}
+        
+        def show_shap():
+            return {overview_section: gr.update(visible=False),
+                    anomalies_section: gr.update(visible=False),
+                    shap_section: gr.update(visible=True),
+                    demo_section: gr.update(visible=False),
+                    incident_section: gr.update(visible=False),
+                    portfolio_section: gr.update(visible=False)}
+        
+        def show_demo():
+            msg, _ = get_demo_tab()
+            return {overview_section: gr.update(visible=False),
+                    anomalies_section: gr.update(visible=False),
+                    shap_section: gr.update(visible=False),
+                    demo_section: gr.update(visible=True),
+                    incident_section: gr.update(visible=False),
+                    portfolio_section: gr.update(visible=False),
+                    demo_content: msg}
+        
+        def show_incident():
+            msg, _ = get_incident_tab()
+            return {overview_section: gr.update(visible=False),
+                    anomalies_section: gr.update(visible=False),
+                    shap_section: gr.update(visible=False),
+                    demo_section: gr.update(visible=False),
+                    incident_section: gr.update(visible=True),
+                    portfolio_section: gr.update(visible=False),
+                    incident_msg: msg}
+        
+        def show_portfolio():
+            msg = get_portfolio_tab()
+            return {overview_section: gr.update(visible=False),
+                    anomalies_section: gr.update(visible=False),
+                    shap_section: gr.update(visible=False),
+                    demo_section: gr.update(visible=False),
+                    incident_section: gr.update(visible=False),
+                    portfolio_section: gr.update(visible=True),
+                    portfolio_msg: msg}
+        
+        # Bind navigation buttons
+        btn_overview.click(show_overview, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section])
+        btn_anomalies.click(show_anomalies, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section])
+        btn_shap.click(show_shap, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section])
+        btn_demo.click(show_demo, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section, demo_content])
+        btn_incident.click(show_incident, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section, incident_msg])
+        btn_portfolio.click(show_portfolio, inputs=[], outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section, portfolio_msg])
+        
+        # Run detection handler - runs all and shows overview
+        def run_all(n, c):
+            msg1, fig1, fig2, fig3, _, _ = get_overview_tab(n, c)
+            msg2, df2, fig4 = get_anomalies_tab()
+            msg3, fig5, _ = get_shap_tab()
+            msg4, data5 = get_incident_tab()
+            msg5 = get_portfolio_tab()
+            return {
+                overview_section: gr.update(visible=True),
+                anomalies_section: gr.update(visible=False),
+                shap_section: gr.update(visible=False),
+                demo_section: gr.update(visible=False),
+                incident_section: gr.update(visible=False),
+                portfolio_section: gr.update(visible=False),
+                overview_msg: msg1,
+                severity_chart: fig1,
+                activity_chart: fig2,
+                geo_chart: fig3,
+                anomaly_msg: msg2,
+                anomaly_table: df2,
+                anomaly_chart: fig4,
+                shap_msg: msg3,
+                shap_plot: fig5,
+                incident_msg: msg4,
+                incident_table: data5,
+                portfolio_msg: msg5
+            }
+        
+        run_btn.click(
+            run_all,
+            inputs=[n_events, contamination],
+            outputs=[overview_section, anomalies_section, shap_section, demo_section, incident_section, portfolio_section,
+                    overview_msg, severity_chart, activity_chart, geo_chart,
+                    anomaly_msg, anomaly_table, anomaly_chart,
+                    shap_msg, shap_plot, incident_msg, incident_table, portfolio_msg]
+        )
+        
+        # Demo mode slider update
         def update_demo(scenario, step):
             scenarios = {
                 "Brute Force Attack": {
+                    "description": "Attacker tries many passwords to guess correct credentials",
                     "steps": [
                         {"title": "Step 1: Reconnaissance", "content": "Attacker scans for valid usernames using common patterns"},
                         {"title": "Step 2: Password Spraying", "content": "Attacker tries common passwords across multiple accounts"},
@@ -445,6 +599,7 @@ def create_app():
                     ]
                 },
                 "Credential Stuffing": {
+                    "description": "Using stolen credentials from other breaches",
                     "steps": [
                         {"title": "Step 1: Credential Match", "content": "Attacker uses stolen credentials from other breaches"},
                         {"title": "Step 2: Multiple IPs", "content": "Same user logging in from different IP addresses"},
@@ -453,6 +608,7 @@ def create_app():
                     ]
                 },
                 "Data Exfiltration": {
+                    "description": "Unauthorized data transfer out of the network",
                     "steps": [
                         {"title": "Step 1: Baseline", "content": "System learns normal data transfer patterns per user"},
                         {"title": "Step 2: Anomaly", "content": "Large data transfer detected outside business hours"},
@@ -481,46 +637,6 @@ def create_app():
 """
             return content
         
-        def update_demo_msg(n, c):
-            msg, _ = get_demo_tab()
-            return msg
-        
-        run_btn.click(
-            get_overview_tab,
-            inputs=[n_events, contamination],
-            outputs=[overview_msg, severity_chart, activity_chart, geo_chart]
-        )
-        
-        run_btn.click(
-            get_anomalies_tab,
-            inputs=[],
-            outputs=[anomaly_msg, anomaly_table, anomaly_chart]
-        )
-        
-        run_btn.click(
-            get_shap_tab,
-            inputs=[],
-            outputs=[shap_msg, shap_plot]
-        )
-        
-        run_btn.click(
-            get_incident_tab,
-            inputs=[],
-            outputs=[incident_msg, incident_table]
-        )
-        
-        run_btn.click(
-            get_demo_tab,
-            inputs=[],
-            outputs=[demo_msg]
-        )
-        
-        run_btn.click(
-            lambda: get_portfolio_tab(),
-            inputs=[],
-            outputs=[portfolio_msg]
-        )
-        
         scenarios_dropdown.change(
             update_demo,
             inputs=[scenarios_dropdown, step_slider],
@@ -532,12 +648,6 @@ def create_app():
             inputs=[scenarios_dropdown, step_slider],
             outputs=[demo_content]
         )
-        
-        gr.Markdown("""
-        <div style="text-align: center; padding: 1rem; color: #6e7681; font-size: 0.8rem;">
-            SOC Sentinel v2.0 | Built with Gradio + Isolation Forest + SHAP
-        </div>
-        """)
     
     return app
 
