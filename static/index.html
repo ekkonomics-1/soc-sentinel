@@ -948,6 +948,379 @@
             0%, 60%, 100% { transform: translateY(0); }
             30% { transform: translateY(-8px); }
         }
+
+        /* Messenger-style Floating Chat */
+        .messenger-chat {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            width: 340px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .messenger-chat.collapsed .messenger-body {
+            display: none;
+        }
+
+        .messenger-chat.collapsed .messenger-input-area {
+            display: none;
+        }
+
+        .messenger-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #0084ff 0%, #0064cf 100%);
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .messenger-header:hover {
+            background: linear-gradient(135deg, #0095ff 0%, #0074df 100%);
+        }
+
+        .messenger-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .messenger-avatar {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .messenger-header div:not(.messenger-header-left):not(.messenger-toggle) {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .messenger-toggle {
+            color: white;
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .messenger-chat.collapsed .messenger-toggle {
+            transform: rotate(180deg);
+        }
+
+        .messenger-body {
+            height: 280px;
+            background: var(--bg-primary);
+            overflow-y: auto;
+        }
+
+        .messenger-messages {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .messenger-message {
+            display: flex;
+            max-width: 80%;
+        }
+
+        .messenger-message.user {
+            align-self: flex-end;
+        }
+
+        .messenger-message.bot {
+            align-self: flex-start;
+        }
+
+        .messenger-message-content {
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .messenger-message.user .messenger-message-content {
+            background: linear-gradient(135deg, #0084ff 0%, #0064cf 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .messenger-message.bot .messenger-message-content {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .messenger-input-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border);
+        }
+
+        .messenger-input-area input {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .messenger-input-area input:focus {
+            border-color: #0084ff;
+        }
+
+        .messenger-input-area input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .messenger-send-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #0084ff 0%, #0064cf 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .messenger-send-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 132, 255, 0.4);
+        }
+
+        /* KQL Query Editor */
+        .code-editor {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+            outline: none;
+        }
+
+        .code-editor:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .code-preview {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+        }
+
+        /* SOAR Styles */
+        .playbook-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .playbook-item:hover {
+            background: rgba(88, 166, 255, 0.1);
+            transform: translateX(4px);
+        }
+
+        .playbook-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .playbook-info {
+            flex: 1;
+        }
+
+        .playbook-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .playbook-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .playbook-status {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+        }
+
+        .playbook-status.active {
+            background: rgba(63, 185, 80, 0.2);
+            color: var(--accent-green);
+        }
+
+        .soar-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .soar-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .soar-action:hover {
+            background: rgba(88, 166, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .soar-action-icon {
+            font-size: 1.5rem;
+        }
+
+        .soar-action-text {
+            font-size: 0.75rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        /* Threat Hunting */
+        .ioc-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .ioc-table th, .ioc-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .ioc-table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+
+        .ioc-table tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* Live Logs */
+        .log-viewer {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            align-items: flex-start;
+        }
+
+        .log-time {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            min-width: 70px;
+        }
+
+        .log-level {
+            font-weight: 600;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .log-level.critical { background: rgba(248, 81, 73, 0.2); color: var(--accent-red); }
+        .log-level.error { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
+        .log-level.warning { background: rgba(210, 153, 34, 0.2); color: var(--accent-yellow); }
+        .log-level.info { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+
+        .log-source {
+            color: var(--accent-purple);
+            font-size: 0.75rem;
+            min-width: 80px;
+        }
+
+        .log-message {
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .live-indicator {
+            color: var(--accent-green);
+            font-size: 0.75rem;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .attack-map {
+            height: 300px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .attack-map-placeholder {
+            text-align: center;
+            color: var(--text-secondary);
+        }
     </style>
 </head>
 <body>
@@ -1010,6 +1383,22 @@
             <a class="nav-item" data-page="statistics" onclick="showPage('statistics')">
                 <span class="nav-icon">📊</span>
                 <span class="nav-label">Statistics</span>
+            </a>
+            <a class="nav-item" data-page="sentinel" onclick="showPage('sentinel')">
+                <span class="nav-icon">☁️</span>
+                <span class="nav-label">Sentinel</span>
+            </a>
+            <a class="nav-item" data-page="soar" onclick="showPage('soar')">
+                <span class="nav-icon">⚡</span>
+                <span class="nav-label">SOAR</span>
+            </a>
+            <a class="nav-item" data-page="threat-hunting" onclick="showPage('threat-hunting')">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-label">Threat Hunting</span>
+            </a>
+            <a class="nav-item" data-page="live-logs" onclick="showPage('live-logs')">
+                <span class="nav-icon">📡</span>
+                <span class="nav-label">Live Logs</span>
             </a>
         </nav>
 
@@ -1105,6 +1494,42 @@
                     <div class="loading"><div class="spinner"></div>Loading alerts...</div>
                 </div>
             </div>
+
+            <!-- Messenger-style Floating Chat -->
+            <div class="messenger-chat" id="messengerChat">
+                <div class="messenger-header" onclick="toggleMessenger()">
+                    <div class="messenger-header-left">
+                        <div class="messenger-avatar">
+                            <span style="font-size: 1.2rem;">🤖</span>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem;">AI Analyst</div>
+                            <div style="font-size: 0.7rem; color: var(--accent-green);">Online</div>
+                        </div>
+                    </div>
+                    <span class="messenger-toggle" id="messengerToggle">▼</span>
+                </div>
+                
+                <div class="messenger-body" id="messengerBody">
+                    <div class="messenger-messages" id="messengerMessages">
+                        <div class="messenger-message bot">
+                            <div class="messenger-message-content">
+                                Hi! Ask me about security threats in natural language.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="messenger-input-area">
+                    <input type="text" id="messengerInput" placeholder="Ask AI Analyst..." 
+                           onkeypress="handleMessengerKeyPress(event)">
+                    <button class="messenger-send-btn" onclick="sendMessengerMessage()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </section>
 
         <section id="page-threats" class="page hidden">
@@ -1125,7 +1550,7 @@
                             <option value="LOW">Low</option>
                         </select>
                     </div>
-                    <button class="btn btn-primary" onclick="runDetection()">Apply Filter</button>
+                    <button class="btn btn-primary" onclick="applyThreatFilter()">Apply Filter</button>
                 </div>
             </div>
 
@@ -1428,6 +1853,360 @@
                 </div>
             </div>
         </section>
+
+        <!-- Sentinel Integration Page -->
+        <section id="page-sentinel" class="page hidden">
+            <div class="page-header">
+                <h2>Microsoft Sentinel Integration</h2>
+                <p>KQL Query Builder & Analytics Rules Export</p>
+            </div>
+
+            <div class="config-panel">
+                <div class="config-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Workspace ID (optional for demo)</label>
+                        <input type="text" id="sentinelWorkspace" placeholder="Enter Azure Log Analytics Workspace ID">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>API Key / Connection String</label>
+                        <input type="password" id="sentinelApiKey" placeholder="Enter API key or connection string">
+                    </div>
+                    <button class="btn btn-secondary" onclick="testSentinelConnection()" style="margin-top: 20px;">Test Connection</button>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <span class="card-title">KQL Query Builder</span>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label>Quick Queries</label>
+                        <select id="kqlQuickSelect" onchange="loadKqlTemplate()">
+                            <option value="">-- Select a template --</option>
+                            <option value="failed_logins">Failed Login Attempts</option>
+                            <option value="suspicious_ip">Suspicious IP Activity</option>
+                            <option value="brute_force">Brute Force Detection</option>
+                            <option value="data_exfil">Data Exfiltration</option>
+                            <option value="lateral_movement">Lateral Movement</option>
+                            <option value="malware_signs">Malware Indicators</option>
+                        </select>
+                    </div>
+                    <textarea id="kqlQuery" class="code-editor" rows="8" placeholder="Syslog | where TimeGenerated > ago(1h) | where SeverityLevel == 'error'"></textarea>
+                    <button class="btn btn-primary" onclick="runKqlQuery()" style="margin-top: 12px;">▶ Run Query</button>
+                </div>
+
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <span class="card-title">Query Results</span>
+                    </div>
+                    <div id="kqlResults" style="height: 280px; overflow: auto; background: var(--bg-primary); border-radius: 8px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                        <div class="empty-state"><h3>No Results</h3><p>Run a query to see results</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Export as Sentinel Analytics Rule</span>
+                </div>
+                <div class="config-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Rule Name</label>
+                        <input type="text" id="sentinelRuleName" placeholder="e.g., Brute Force Attack Detection">
+                    </div>
+                    <div class="form-group" style="width: 150px;">
+                        <label>Severity</label>
+                        <select id="sentinelRuleSeverity">
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                            <option value="Informational">Low</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="exportSentinelRule()" style="margin-top: 20px;">📤 Export JSON</button>
+                </div>
+                <div style="margin-top: 12px;">
+                    <pre id="sentinelRulePreview" class="code-preview" style="background: var(--bg-primary); padding: 16px; border-radius: 8px; font-size: 0.75rem; overflow: auto; max-height: 200px;">{}</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SOAR Page -->
+        <section id="page-soar" class="page hidden">
+            <div class="page-header">
+                <h2>SOAR - Security Orchestration</h2>
+                <p>Automated response playbooks and containment actions</p>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card success">
+                    <div class="metric-value" id="playbooksExecuted">0</div>
+                    <div class="metric-label">Playbooks Executed</div>
+                </div>
+                <div class="metric-card info">
+                    <div class="metric-value" id="ipsBlocked">0</div>
+                    <div class="metric-label">IPs Blocked</div>
+                </div>
+                <div class="metric-card warning">
+                    <div class="metric-value" id="usersIsolated">0</div>
+                    <div class="metric-label">Users Isolated</div>
+                </div>
+                <div class="metric-card critical">
+                    <div class="metric-value" id="autoContainments">0</div>
+                    <div class="metric-label">Auto Containments</div>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <span class="card-title">Playbook Library</span>
+                        <button class="btn btn-primary" onclick="showCreatePlaybook()">+ New Playbook</button>
+                    </div>
+                    <div id="playbookList">
+                        <div class="playbook-item" onclick="selectPlaybook('block_ip')">
+                            <div class="playbook-icon" style="background: #f85149;">🚫</div>
+                            <div class="playbook-info">
+                                <div class="playbook-name">Block Malicious IP</div>
+                                <div class="playbook-desc">Automatically block IP in firewall</div>
+                            </div>
+                            <div class="playbook-status active">Active</div>
+                        </div>
+                        <div class="playbook-item" onclick="selectPlaybook('isolate_user')">
+                            <div class="playbook-icon" style="background: #d29922;">🔒</div>
+                            <div class="playbook-info">
+                                <div class="playbook-name">Isolate Compromised User</div>
+                                <div class="playbook-desc">Disable AD account & reset password</div>
+                            </div>
+                            <div class="playbook-status active">Active</div>
+                        </div>
+                        <div class="playbook-item" onclick="selectPlaybook('quarantine_endpoint')">
+                            <div class="playbook-icon" style="background: #a371f7;">🖥️</div>
+                            <div class="playbook-info">
+                                <div class="playbook-name">Quarantine Endpoint</div>
+                                <div class="playbook-desc">Isolate host from network</div>
+                            </div>
+                            <div class="playbook-status active">Active</div>
+                        </div>
+                        <div class="playbook-item" onclick="selectPlaybook('notify_team')">
+                            <div class="playbook-icon" style="background: #58a6ff;">📧</div>
+                            <div class="playbook-info">
+                                <div class="playbook-name">Notify Security Team</div>
+                                <div class="playbook-desc">Send alert to SOC team</div>
+                            </div>
+                            <div class="playbook-status active">Active</div>
+                        </div>
+                        <div class="playbook-item" onclick="selectPlaybook('collect_evidence')">
+                            <div class="playbook-icon" style="background: #3fb950;">📁</div>
+                            <div class="playbook-info">
+                                <div class="playbook-name">Collect Evidence</div>
+                                <div class="playbook-desc">Gather forensics data</div>
+                            </div>
+                            <div class="playbook-status">Paused</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <span class="card-title">Quick Actions</span>
+                    </div>
+                    <div class="soar-actions">
+                        <div class="soar-action" onclick="executePlaybook('block_ip')">
+                            <div class="soar-action-icon">🚫</div>
+                            <div class="soar-action-text">Block IP Address</div>
+                        </div>
+                        <div class="soar-action" onclick="executePlaybook('isolate_user')">
+                            <div class="soar-action-icon">🔒</div>
+                            <div class="soar-action-text">Isolate User</div>
+                        </div>
+                        <div class="soar-action" onclick="executePlaybook('quarantine')">
+                            <div class="soar-action-icon">🖥️</div>
+                            <div class="soar-action-text">Quarantine Host</div>
+                        </div>
+                        <div class="soar-action" onclick="executePlaybook('collect_forensics')">
+                            <div class="soar-action-icon">🔍</div>
+                            <div class="soar-action-text">Collect Forensics</div>
+                        </div>
+                        <div class="soar-action" onclick="executePlaybook('create_incident')">
+                            <div class="soar-action-icon">🎫</div>
+                            <div class="soar-action-text">Create Incident</div>
+                        </div>
+                        <div class="soar-action" onclick="executePlaybook('send_notification')">
+                            <div class="soar-action-icon">📨</div>
+                            <div class="soar-action-text">Send Notification</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Select Threat for Action</label>
+                            <select id="soarThreatSelect">
+                                <option value="">-- Select threat --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Playbook Execution Log</span>
+                </div>
+                <div id="playbookLog" style="max-height: 200px; overflow: auto;">
+                    <div class="empty-state"><h3>No executions yet</h3><p>Run a playbook to see the log</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Threat Hunting Page -->
+        <section id="page-threat-hunting" class="page hidden">
+            <div class="page-header">
+                <h2>Threat Hunting</h2>
+                <p>Hypothesis-driven threat hunting with MITRE ATT&CK coverage</p>
+            </div>
+
+            <div class="charts-row">
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <span class="card-title">MITRE ATT&CK Coverage</span>
+                    </div>
+                    <div id="mitreHeatmap" class="chart-container" style="height: 300px;"></div>
+                </div>
+
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <span class="card-title">Hypothesis Builder</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Hypothesis Type</label>
+                        <select id="hypothesisType">
+                            <option value="">-- Select hypothesis --</option>
+                            <option value="credential_theft">Credential Theft - Suspicious login patterns</option>
+                            <option value="data_exfil">Data Exfiltration - Large data transfers</option>
+                            <option value="lateral_movement">Lateral Movement - Unusual service connections</option>
+                            <option value="persistence">Persistence - New startup entries</option>
+                            <option value="privilege_escalation">Privilege Escalation - Admin changes</option>
+                            <option value="command_control">Command & Control - Suspicious DNS queries</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Hypothesis Description</label>
+                        <textarea id="hypothesisDesc" rows="3" class="code-editor" placeholder="I suspect that [threat actor] is attempting to [attack technique] using [IOC]"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Search IOCs</label>
+                        <input type="text" id="iocSearch" placeholder="Enter IP, hash, domain, or file path">
+                    </div>
+                    <button class="btn btn-primary" onclick="runHypothesis()">🎯 Run Hypothesis</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Hunting Results</span>
+                    <button class="btn btn-secondary" onclick="exportHuntingReport()">📤 Export Report</button>
+                </div>
+                <div id="huntingResults">
+                    <div class="empty-state"><h3>No Results</h3><p>Run a hypothesis to see results</p></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Known IOCs Database</span>
+                </div>
+                <table class="ioc-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Indicator</th>
+                            <th>Risk</th>
+                            <th>Source</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="iocTableBody">
+                        <tr><td>IP</td><td>185.220.101.1</td><td><span class="severity-badge severity-critical">Critical</span></td><td>Tor Exit</td><td>2026-02-28</td></tr>
+                        <tr><td>IP</td><td>45.33.32.156</td><td><span class="severity-badge severity-high">High</span></td><td>AbuseIPDB</td><td>2026-02-27</td></tr>
+                        <tr><td>Domain</td><td>evil-c2.malware.com</td><td><span class="severity-badge severity-critical">Critical</span></td><td>VT</td><td>2026-02-26</td></tr>
+                        <tr><td>Hash</td><td>a1b2c3d4e5f6...</td><td><span class="severity-badge severity-high">High</span></td><td>YARA</td><td>2026-02-25</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Live Logs Page -->
+        <section id="page-live-logs" class="page hidden">
+            <div class="page-header">
+                <h2>Live Security Logs</h2>
+                <p>Real-time log streaming and event monitoring</p>
+            </div>
+
+            <div class="config-panel">
+                <div class="config-row">
+                    <div class="form-group">
+                        <label>Log Source</label>
+                        <select id="logSource">
+                            <option value="all">All Sources</option>
+                            <option value="firewall">Firewall</option>
+                            <option value="ids">IDS/IPS</option>
+                            <option value="endpoint">Endpoint</option>
+                            <option value="auth">Authentication</option>
+                            <option value="network">Network</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Severity</label>
+                        <select id="logSeverity">
+                            <option value="all">All Levels</option>
+                            <option value="critical">Critical</option>
+                            <option value="error">Error</option>
+                            <option value="warning">Warning</option>
+                            <option value="info">Info</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Search</label>
+                        <input type="text" id="logSearch" placeholder="Search logs...">
+                    </div>
+                    <button class="btn btn-primary" id="toggleLiveLogs" onclick="toggleLiveLogs()">▶ Start Live</button>
+                    <button class="btn btn-secondary" onclick="clearLogs()">Clear</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Live Log Stream</span>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span id="logCount" style="font-size: 0.8rem; color: var(--text-secondary);">0 events</span>
+                        <span id="liveIndicator" class="live-indicator">● Live</span>
+                    </div>
+                </div>
+                <div id="logViewer" class="log-viewer">
+                    <div class="log-entry info">
+                        <span class="log-time">--:--:--</span>
+                        <span class="log-level info">INFO</span>
+                        <span class="log-source">SYSTEM</span>
+                        <span class="log-message">Log viewer ready. Click "Start Live" to begin streaming.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Attack Map</span>
+                </div>
+                <div id="attackMap" class="attack-map">
+                    <div class="attack-map-placeholder">
+                        <div style="font-size: 3rem;">🗺️</div>
+                        <div style="margin-top: 12px;">Attack Map Visualization</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Live attacks will appear here</div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script>
@@ -1479,6 +2258,23 @@
             item.addEventListener('click', () => showPage(item.dataset.page));
         });
 
+        function applyThreatFilter() {
+            if (!allAnomalies || allAnomalies.length === 0) {
+                showNotification('No threats to filter. Run detection first.', 'error');
+                return;
+            }
+            
+            const severity = document.getElementById('severityFilter').value;
+            
+            let filtered = allAnomalies;
+            if (severity !== 'All') {
+                filtered = allAnomalies.filter(a => a.severity === severity);
+            }
+            
+            updateThreatsTable(filtered);
+            showNotification(`Showing ${filtered.length} ${severity === 'All' ? 'threats' : severity + ' threats'}`, 'success');
+        }
+
         async function runDetection() {
             const nEvents = document.getElementById('nEvents').value;
             const btn = document.getElementById('runDetection');
@@ -1502,6 +2298,7 @@
                     updateOverview(data);
                     updateThreatsTable(data.anomalies);
                     updateInvestigationSelect(data.anomalies);
+                    updateSoarThreatSelect();
                     renderCharts(data);
                 } else {
                     showNotification('Detection failed', 'error');
@@ -2112,6 +2909,70 @@
             });
         }
 
+        // Messenger Chat Functions
+        function toggleMessenger() {
+            const chat = document.getElementById('messengerChat');
+            chat.classList.toggle('collapsed');
+        }
+
+        function handleMessengerKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessengerMessage();
+            }
+        }
+
+        function sendMessengerMessage() {
+            const input = document.getElementById('messengerInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            input.value = '';
+            
+            // Add user message
+            addMessengerMessage(message, 'user');
+            
+            // Show typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'messenger-message bot';
+            typingDiv.id = 'messengerTyping';
+            typingDiv.innerHTML = '<div class="messenger-message-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+            document.getElementById('messengerMessages').appendChild(typingDiv);
+            document.getElementById('messengerBody').scrollTop = document.getElementById('messengerBody').scrollHeight;
+            
+            // Send to API
+            fetch('/api/ai-chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message, history: [] })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('messengerTyping').remove();
+                addMessengerMessage(data.response, 'bot');
+            })
+            .catch(() => {
+                document.getElementById('messengerTyping').remove();
+                addMessengerMessage('Sorry, something went wrong. Try again.', 'bot');
+            });
+        }
+
+        function addMessengerMessage(text, sender) {
+            const container = document.getElementById('messengerMessages');
+            
+            // Format text
+            let formattedText = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+            
+            const div = document.createElement('div');
+            div.className = `messenger-message ${sender}`;
+            div.innerHTML = `<div class="messenger-message-content">${formattedText}</div>`;
+            
+            container.appendChild(div);
+            document.getElementById('messengerBody').scrollTop = document.getElementById('messengerBody').scrollHeight;
+        }
+
         async function checkHealth() {
             try {
                 const response = await fetch('/api/health');
@@ -2119,6 +2980,274 @@
                 document.getElementById('systemStatus').textContent = health.status === 'online' ? 'System Online' : 'System Offline';
             } catch (e) {
                 document.getElementById('systemStatus').textContent = 'System Offline';
+            }
+        }
+
+        // Sentinel/KQL Functions
+        const kqlTemplates = {
+            failed_logins: 'Syslog | where TimeGenerated > ago(1h) | where Message contains "Failed" or Message contains "failure" | where Facility == "auth" | summarize FailedCount=count() by bin(TimeGenerated, 5m), SrcIpAddr | where FailedCount > 5',
+            suspicious_ip: 'Syslog | where TimeGenerated > ago(24h) | where SrcIpAddr in (["185.220.101.1", "45.33.32.156", "23.129.64.130"]) | project TimeGenerated, HostName, SrcIpAddr, Message | take 100',
+            brute_force: 'SecurityEvent | where TimeGenerated > ago(1h) | where AccountType == "User" and LogonType == 3 | where ErrorCode != 0 | summarize AttemptCount=count() by Account, IpAddress, bin(TimeGenerated, 1m) | where AttemptCount > 10',
+            data_exfil: 'Syslog | where TimeGenerated > ago(1h) | where BytesOut > 10000000 | project TimeGenerated, HostName, SrcIpAddr, DstIpAddr, BytesOut | sort by BytesOut desc',
+            lateral_movement: 'SecurityEvent | where TimeGenerated > ago(1h) | where EventID in (4624, 4648) | where LogonType == 3 | where SrcIpAddr != "127.0.0.1" | summarize count() by Account, SrcIpAddr, bin(TimeGenerated, 5m)',
+            malware_signs: 'SecurityEvent | where TimeGenerated > ago(1h) | where EventID == 4688 | where CommandLine contains ".exe" or ParentCommandLine contains ".exe" | where CommandLine in ("powershell", "cmd.exe") | take 100'
+        };
+
+        function loadKqlTemplate() {
+            const select = document.getElementById('kqlQuickSelect');
+            const template = kqlTemplates[select.value];
+            if (template) {
+                document.getElementById('kqlQuery').value = template;
+            }
+        }
+
+        function runKqlQuery() {
+            const query = document.getElementById('kqlQuery').value;
+            const resultsDiv = document.getElementById('kqlResults');
+            
+            if (!query.trim()) {
+                resultsDiv.innerHTML = '<div class="empty-state"><h3>No Query</h3><p>Enter a KQL query</p></div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Running query...</div>';
+            
+            // Simulate query results
+            setTimeout(() => {
+                const sampleResults = [
+                    { time: '2026-02-28 10:23:15', source: '192.168.1.100', event: 'Failed login attempt', count: 15 },
+                    { time: '2026-02-28 10:23:14', source: '192.168.1.101', event: 'Failed login attempt', count: 8 },
+                    { time: '2026-02-28 10:23:13', source: '192.168.1.102', event: 'Suspicious process', count: 1 },
+                    { time: '2026-02-28 10:23:12', source: '192.168.1.103', event: 'Large data transfer', count: 1 }
+                ];
+                
+                let html = '<table style="width:100%; font-size:0.8rem;"><thead><tr><th>Time</th><th>Source</th><th>Event</th><th>Count</th></tr></thead><tbody>';
+                sampleResults.forEach(r => {
+                    html += `<tr><td>${r.time}</td><td>${r.source}</td><td>${r.event}</td><td>${r.count}</td></tr>`;
+                });
+                html += '</tbody></table>';
+                resultsDiv.innerHTML = html;
+            }, 1000);
+        }
+
+        function exportSentinelRule() {
+            const name = document.getElementById('sentinelRuleName').value || 'SOC Sentinel Detection';
+            const severity = document.getElementById('sentinelRuleSeverity').value;
+            const query = document.getElementById('kqlQuery').value || '// No query defined';
+            
+            const rule = {
+                "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                "contentVersion": "1.0.0.0",
+                "parameters": {
+                    "workspaceName": {
+                        "type": "string",
+                        "defaultValue": "soc-sentinel-workspace"
+                    }
+                },
+                "resources": [{
+                    "type": "Microsoft.OperationalInsights/workspaces/savedSearches",
+                    "apiVersion": "2020-08-01",
+                    "name": "[concat(parameters('workspaceName'), '/', '" + name.replace(/\s+/g, '-').toLowerCase() + "')]",
+                    "properties": {
+                        "category": "SOC Sentinel",
+                        "displayName": name,
+                        "query": query,
+                        "version": 2,
+                        "severity": severity,
+                        "enabled": true,
+                        "interval": 5,
+                        "timeoutWindow": 30,
+                        "triggerThreshold": 0
+                    }
+                }]
+            };
+            
+            document.getElementById('sentinelRulePreview').textContent = JSON.stringify(rule, null, 2);
+            showNotification('Sentinel rule exported!', 'success');
+        }
+
+        function testSentinelConnection() {
+            showNotification('Testing Sentinel connection...', 'success');
+            setTimeout(() => {
+                showNotification('Connection successful (Demo Mode)', 'success');
+            }, 1000);
+        }
+
+        // SOAR Functions
+        let playbookStats = { executed: 0, blocked: 0, isolated: 0, auto: 0 };
+
+        function selectPlaybook(id) {
+            showNotification(`Selected playbook: ${id}`, 'success');
+        }
+
+        function executePlaybook(action) {
+            const threatSelect = document.getElementById('soarThreatSelect');
+            const threat = threatSelect.value;
+            
+            const actions = {
+                'block_ip': { icon: '🚫', name: 'Block IP', target: threat || '185.220.101.1' },
+                'isolate_user': { icon: '🔒', name: 'Isolate User', target: threat || 'admin' },
+                'quarantine': { icon: '🖥️', name: 'Quarantine Host', target: threat || 'WORKSTATION-01' },
+                'collect_forensics': { icon: '🔍', name: 'Collect Forensics', target: threat || 'HOST-001' },
+                'create_incident': { icon: '🎫', name: 'Create Incident', target: threat || 'INC-001' },
+                'send_notification': { icon: '📨', name: 'Send Notification', target: 'SOC Team' }
+            };
+            
+            const playAction = actions[action];
+            playbookStats.executed++;
+            if (action === 'block_ip') playbookStats.blocked++;
+            if (action === 'isolate_user') playbookStats.isolated++;
+            playbookStats.auto++;
+            
+            document.getElementById('playbooksExecuted').textContent = playbookStats.executed;
+            document.getElementById('ipsBlocked').textContent = playbookStats.blocked;
+            document.getElementById('usersIsolated').textContent = playbookStats.isolated;
+            document.getElementById('autoContainments').textContent = playbookStats.auto;
+            
+            const log = document.getElementById('playbookLog');
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML = `
+                <div style="padding: 8px; border-bottom: 1px solid var(--border);">
+                    <span style="color: var(--accent-green);">${playAction.icon}</span>
+                    <span style="margin-left: 8px;">${time}</span>
+                    <span style="margin-left: 12px; font-weight: 600;">${playAction.name}</span>
+                    <span style="margin-left: 12px; color: var(--text-secondary);">Target: ${playAction.target}</span>
+                </div>
+            ` + log.innerHTML;
+            
+            showNotification(`${playAction.name} executed!`, 'success');
+        }
+
+        function showCreatePlaybook() {
+            showNotification('Playbook builder coming soon!', 'success');
+        }
+
+        // Threat Hunting Functions
+        const mitreData = {
+            x: ['Initial Access', 'Execution', 'Persistence', 'Priv Esc', 'Defense Evasion', 'Cred Access', 'Discovery', 'Lateral Movt', 'Collection', 'C2', 'Exfiltration', 'Impact'],
+            y: ['TA0001', 'TA0002', 'TA0003', 'TA0004', 'TA0005', 'TA0006', 'TA0007', 'TA0008', 'TA0009', 'TA0011', 'TA0010', 'TA0040'],
+            z: [
+                [3, 2, 0], [2, 3, 1], [1, 2, 2], [2, 1, 2], [3, 1, 1], [2, 2, 1],
+                [1, 1, 2], [2, 1, 1], [1, 2, 1], [3, 2, 0], [2, 1, 1], [1, 1, 2]
+            ]
+        };
+
+        function runHypothesis() {
+            const type = document.getElementById('hypothesisType').value;
+            const desc = document.getElementById('hypothesisDesc').value;
+            const ioc = document.getElementById('iocSearch').value;
+            
+            if (!type && !ioc) {
+                showNotification('Select a hypothesis or enter an IOC', 'error');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('huntingResults');
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Running hypothesis...</div>';
+            
+            setTimeout(() => {
+                const findings = [
+                    { severity: 'High', indicator: '185.220.101.1', technique: 'T1110 - Brute Force', confidence: '85%' },
+                    { severity: 'Medium', indicator: 'failed_login_count > 10', technique: 'T1078 - Valid Accounts', confidence: '72%' },
+                    { severity: 'Low', indicator: 'unusual_hour', technique: 'T1078 - After Hours', confidence: '45%' }
+                ];
+                
+                let html = '<table style="width:100%;"><thead><tr><th>Severity</th><th>Indicator</th><th>MITRE Technique</th><th>Confidence</th></tr></thead><tbody>';
+                findings.forEach(f => {
+                    const sevClass = f.severity === 'High' ? 'critical' : f.severity === 'Medium' ? 'high' : 'low';
+                    html += `<tr><td><span class="severity-badge severity-${sevClass}">${f.severity}</span></td><td>${f.indicator}</td><td>${f.technique}</td><td>${f.confidence}</td></tr>`;
+                });
+                html += '</tbody></table>';
+                resultsDiv.innerHTML = html;
+                
+                showNotification(`Found ${findings.length} findings!`, 'success');
+            }, 1500);
+        }
+
+        function exportHuntingReport() {
+            showNotification('Exporting hunting report...', 'success');
+        }
+
+        // Live Logs Functions
+        let liveLogsInterval = null;
+        let logCount = 0;
+
+        const logTemplates = [
+            { level: 'info', source: 'FIREWALL', message: 'Allow TCP connection from 192.168.1.100 to 10.0.0.5:443' },
+            { level: 'warning', source: 'IDS', message: 'Potential SQL injection attempt detected - 192.168.1.50' },
+            { level: 'error', source: 'AUTH', message: 'Failed login attempt for user admin from IP 185.220.101.1' },
+            { level: 'info', source: 'ENDPOINT', message: 'Process started: powershell.exe -nop -w hidden' },
+            { level: 'critical', source: 'FIREWALL', message: 'Block rule triggered - Suspicious outbound connection to 45.33.32.156:4444' },
+            { level: 'warning', source: 'NETWORK', message: 'Unusual bandwidth usage detected from host 192.168.1.75' },
+            { level: 'info', source: 'AUTH', message: 'Successful login for user john from 192.168.1.101' },
+            { level: 'error', source: 'ENDPOINT', message: 'Malware signature detected - file: suspicious.exe' },
+            { level: 'warning', source: 'PROXY', message: 'Blocked access to malicious domain: evil-c2.malware.com' },
+            { level: 'critical', source: 'AUTH', message: 'Multiple failed logins - possible brute force from 23.129.64.130' }
+        ];
+
+        function toggleLiveLogs() {
+            const btn = document.getElementById('toggleLiveLogs');
+            const indicator = document.getElementById('liveIndicator');
+            
+            if (liveLogsInterval) {
+                clearInterval(liveLogsInterval);
+                liveLogsInterval = null;
+                btn.textContent = '▶ Start Live';
+                indicator.style.display = 'none';
+            } else {
+                liveLogsInterval = setInterval(addLogEntry, 1500);
+                btn.textContent = '⏹ Stop';
+                indicator.style.display = 'inline';
+            }
+        }
+
+        function addLogEntry() {
+            const logViewer = document.getElementById('logViewer');
+            const template = logTemplates[Math.floor(Math.random() * logTemplates.length)];
+            const time = new Date().toLocaleTimeString();
+            
+            logCount++;
+            document.getElementById('logCount').textContent = `${logCount} events`;
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${template.level}`;
+            entry.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span class="log-level ${template.level}">${template.level.toUpperCase()}</span>
+                <span class="log-source">${template.source}</span>
+                <span class="log-message">${template.message}</span>
+            `;
+            
+            logViewer.insertBefore(entry, logViewer.firstChild.nextSibling);
+            
+            // Keep only last 100 entries
+            while (logViewer.children.length > 100) {
+                logViewer.removeChild(logViewer.lastChild);
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('logViewer').innerHTML = `
+                <div class="log-entry info">
+                    <span class="log-time">--:--:--</span>
+                    <span class="log-level info">INFO</span>
+                    <span class="log-source">SYSTEM</span>
+                    <span class="log-message">Log viewer cleared.</span>
+                </div>
+            `;
+            logCount = 0;
+            document.getElementById('logCount').textContent = '0 events';
+        }
+
+        // Populate SOAR threat select
+        function updateSoarThreatSelect() {
+            const select = document.getElementById('soarThreatSelect');
+            select.innerHTML = '<option value="">-- Select threat --</option>';
+            
+            if (allAnomalies && allAnomalies.length > 0) {
+                allAnomalies.slice(0, 10).forEach((a, i) => {
+                    select.innerHTML += `<option value="${a.ip_address}">#${i+1} - ${a.user} (${a.ip_address}) - ${a.severity}</option>`;
+                });
             }
         }
 
@@ -2132,6 +3261,34 @@
             if (!document.getElementById('threatIntelIp').value) {
                 document.getElementById('threatIntelIp').value = '185.220.101.1';
             }
+        });
+        document.querySelector('[data-page="sentinel"]').addEventListener('click', () => {
+            // Initialize Sentinel page
+        });
+        document.querySelector('[data-page="soar"]').addEventListener('click', () => {
+            updateSoarThreatSelect();
+        });
+        document.querySelector('[data-page="threat-hunting"]').addEventListener('click', () => {
+            // Render MITRE heatmap
+            if (typeof Plotly !== 'undefined') {
+                const data = [{
+                    x: mitreData.x,
+                    y: mitreData.y,
+                    z: mitreData.z.map(row => row[0]),
+                    type: 'heatmap',
+                    colorscale: 'Reds',
+                    showscale: true
+                }];
+                Plotly.newPlot('mitreHeatmap', data, {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    font: { color: '#8b949e' },
+                    margin: { t: 20, b: 60, l: 80, r: 20 }
+                });
+            }
+        });
+        document.querySelector('[data-page="live-logs"]').addEventListener('click', () => {
+            // Initialize live logs
         });
 
         checkHealth();
