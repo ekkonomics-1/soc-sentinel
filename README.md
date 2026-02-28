@@ -337,7 +337,7 @@ MIT License - Feel free to use for your portfolio!
 
 ## 👤 Author
 
-**Your Name** - SOC Security Engineer & AI Specialist
+**Fadi** - SOC Security Engineer & AI Specialist
 
 ---
 
