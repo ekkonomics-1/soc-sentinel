@@ -3090,6 +3090,74 @@
             document.getElementById('timelineList').innerHTML = html;
         }
 
+        async function loadShapAnalysis() {
+            if (!allAnomalies || allAnomalies.length === 0) {
+                document.getElementById('topFeaturesList').innerHTML = '<div class="empty-state"><h3>No Data</h3><p>Run detection first to see SHAP analysis</p></div>';
+                return;
+            }
+
+            document.getElementById('topFeaturesList').innerHTML = '<div class="loading"><div class="spinner"></div>Loading features...</div>';
+
+            // Generate mock SHAP feature importance data
+            const features = [
+                { name: 'login_failure_count', importance: 0.85, impact: 'high' },
+                { name: 'request_rate', importance: 0.72, impact: 'high' },
+                { name: 'error_rate', importance: 0.65, impact: 'medium' },
+                { name: 'unique_ips', importance: 0.58, impact: 'medium' },
+                { name: 'geo_countries_accessed', importance: 0.52, impact: 'medium' },
+                { name: 'avg_response_time', importance: 0.45, impact: 'low' },
+                { name: 'bytes_sent', importance: 0.38, impact: 'low' },
+                { name: 'hour_of_day', importance: 0.25, impact: 'low' }
+            ];
+
+            // Render feature importance chart
+            if (typeof Plotly !== 'undefined') {
+                const chartData = [{
+                    x: features.map(f => f.importance),
+                    y: features.map(f => f.name),
+                    type: 'bar',
+                    orientation: 'h',
+                    marker: {
+                        color: features.map(f => f.impact === 'high' ? '#f85149' : f.impact === 'medium' ? '#d29922' : '#3fb950')
+                    }
+                }];
+
+                Plotly.newPlot('featureImportanceChart', chartData, {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    font: { color: '#8b949e' },
+                    xaxis: { title: 'SHAP Importance', gridcolor: 'rgba(48,54,61,0.5)' },
+                    yaxis: { title: '' },
+                    margin: { t: 20, b: 40, l: 150, r: 20 }
+                });
+            }
+
+            // Render top features list
+            let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+            features.forEach((f, i) => {
+                const color = f.impact === 'high' ? '#f85149' : f.impact === 'medium' ? '#d29922' : '#3fb950';
+                const arrow = f.importance > 0.5 ? '↑' : '↓';
+                html += `
+                    <div style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; border-left: 3px solid ${color};">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600;">${f.name}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Impact: ${f.impact}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.2rem; font-weight: 700; color: ${color};">${arrow} ${(f.importance * 100).toFixed(0)}%</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; background: var(--bg-primary); border-radius: 4px; height: 6px; overflow: hidden;">
+                            <div style="width: ${f.importance * 100}%; height: 100%; background: ${color};"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            document.getElementById('topFeaturesList').innerHTML = html;
+        }
+
         let chatHistory = [];
 
         function handleChatKeyPress(event) {
@@ -3567,6 +3635,9 @@
             if (!document.getElementById('threatIntelIp').value) {
                 document.getElementById('threatIntelIp').value = '185.220.101.1';
             }
+        });
+        document.querySelector('[data-page="shap"]').addEventListener('click', () => {
+            loadShapAnalysis();
         });
         document.querySelector('[data-page="sentinel"]').addEventListener('click', () => {
             // Initialize Sentinel page
