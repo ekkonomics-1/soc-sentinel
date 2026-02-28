@@ -1777,9 +1777,9 @@
 
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title">Geographic Distribution</span>
+                    <span class="card-title">🌍 Live Threat Map</span>
                 </div>
-                <div id="geoChart" class="chart-container"></div>
+                <div id="geoChart" class="chart-container" style="height: 350px;"></div>
             </div>
         </section>
 
@@ -2864,21 +2864,71 @@
                     });
                 }
 
-                // Geographic distribution
-                const countries = Object.entries(stats.countries || {}).slice(0, 15);
+                // Geographic distribution - World Map
+                const countries = Object.entries(stats.countries || {});
                 if (countries.length) {
+                    const countryCodes = {
+                        'US': 'USA', 'CN': 'CHN', 'RU': 'RUS', 'IR': 'IRN', 'KP': 'PRK',
+                        'SY': 'SYR', 'DE': 'DEU', 'FR': 'FRA', 'GB': 'GBR', 'JP': 'JPN',
+                        'KR': 'KOR', 'IN': 'IND', 'BR': 'BRA', 'CA': 'CAN', 'AU': 'AUS',
+                        'NL': 'NLD', 'UA': 'UKR', 'PK': 'PAK', 'VN': 'VNM', 'TH': 'THA'
+                    };
+                    
+                    const countryNames = {
+                        'US': 'United States', 'CN': 'China', 'RU': 'Russia', 'IR': 'Iran', 'KP': 'North Korea',
+                        'SY': 'Syria', 'DE': 'Germany', 'FR': 'France', 'GB': 'United Kingdom', 'JP': 'Japan',
+                        'KR': 'South Korea', 'IN': 'India', 'BR': 'Brazil', 'CA': 'Canada', 'AU': 'Australia',
+                        'NL': 'Netherlands', 'UA': 'Ukraine', 'PK': 'Pakistan', 'VN': 'Vietnam', 'TH': 'Thailand'
+                    };
+                    
+                    const locations = countries.map(c => countryCodes[c[0]] || c[0]);
+                    const zValues = countries.map(c => c[1]);
+                    
                     Plotly.newPlot('geoChart', [{
-                        x: countries.map(c => c[1]),
-                        y: countries.map(c => c[0]),
-                        type: 'bar',
-                        orientation: 'h',
-                        marker: { color: '#58a6ff' }
+                        type: 'choropleth',
+                        locationmode: 'ISO-3',
+                        locations: locations,
+                        z: zValues,
+                        text: locations.map(l => countryNames[l] || l),
+                        colorscale: [
+                            [0, 'rgb(63, 185, 80)'],      // Green - low
+                            [0.3, 'rgb(88, 166, 255)'],    // Blue - medium
+                            [0.6, 'rgb(210, 153, 34)'],   // Yellow - high
+                            [1, 'rgb(248, 81, 73)']       // Red - critical
+                        ],
+                        autocolorscale: false,
+                        reversescale: false,
+                        marker: {
+                            line: {
+                                color: 'rgb(255,255,255)',
+                                width: 1
+                            },
+                            opacity: 0.8
+                        },
+                        colorbar: {
+                            title: 'Threats',
+                            thickness: 15,
+                            len: 0.8
+                        }
                     }], {
                         paper_bgcolor: 'rgba(0,0,0,0)',
                         font: { color: '#8b949e' },
-                        xaxis: { title: 'Threat Count' },
-                        yaxis: { title: '' },
-                        margin: { t: 20, b: 40, l: 50, r: 20 }
+                        geo: {
+                            showframe: false,
+                            showcoastlines: true,
+                            coastlinecolor: 'rgb(48,54,61)',
+                            coastlinewidth: 1,
+                            showland: true,
+                            landcolor: 'rgb(33,38,45)',
+                            showocean: true,
+                            oceancolor: 'rgb(22,28,37)',
+                            showlakes: false,
+                            showcountries: true,
+                            countrycolor: 'rgb(48,54,61)',
+                            countrywidth: 0.5,
+                            bgcolor: 'rgba(0,0,0,0)'
+                        },
+                        margin: { t: 10, b: 10, l: 10, r: 10 }
                     });
                 }
             } catch (e) {
