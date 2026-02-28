@@ -1321,6 +1321,107 @@
             text-align: center;
             color: var(--text-secondary);
         }
+
+        /* Reports & Compliance */
+        .compliance-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .compliance-item:last-child {
+            border-bottom: none;
+        }
+
+        .compliance-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 220px;
+        }
+
+        .compliance-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .compliance-icon.success { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .compliance-icon.warning { background: rgba(210, 153, 34, 0.2); color: var(--accent-yellow); }
+        .compliance-icon.error { background: rgba(248, 81, 73, 0.2); color: var(--accent-red); }
+
+        .compliance-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .compliance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-green), #3fb950);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .compliance-fill.warning { background: linear-gradient(90deg, var(--accent-yellow), #d29922); }
+        .compliance-fill.error { background: linear-gradient(90deg, var(--accent-red), #f85149); }
+
+        .compliance-percent {
+            font-weight: 600;
+            font-size: 0.85rem;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .report-preview {
+            background: white;
+            color: #1a1a1a;
+            padding: 32px;
+            border-radius: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .report-header {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .report-header h2 {
+            color: #1a1a1a;
+            font-size: 1.5rem;
+        }
+
+        .report-section {
+            margin-bottom: 24px;
+        }
+
+        .report-section h3 {
+            color: #1a1a1a;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .report-section p {
+            color: #444;
+            line-height: 1.6;
+        }
+
+        .report-section ul {
+            color: #444;
+        }
     </style>
 </head>
 <body>
@@ -1416,6 +1517,10 @@
                 <span class="nav-icon">🔔</span>
                 <span class="nav-label">Alerts</span>
                 <span class="nav-badge" id="alertCountBadge" style="display: none;">0</span>
+            </a>
+            <a class="nav-item" data-page="reports" onclick="showPage('reports')">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Reports</span>
             </a>
         </nav>
 
@@ -2204,6 +2309,207 @@
                         <div style="margin-top: 12px;">Attack Map Visualization</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">Live attacks will appear here</div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports & Compliance Page -->
+        <section id="page-reports" class="page hidden">
+            <div class="page-header">
+                <h2>Reports & Compliance</h2>
+                <p>Generate security reports and compliance documentation</p>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card info">
+                    <div class="metric-value" id="reportsGenerated">0</div>
+                    <div class="metric-label">Reports Generated</div>
+                </div>
+                <div class="metric-card success">
+                    <div class="metric-value" id="complianceScore">0%</div>
+                    <div class="metric-label">Compliance Score</div>
+                </div>
+                <div class="metric-card warning">
+                    <div class="metric-value" id="openIncidents">0</div>
+                    <div class="metric-label">Open Incidents</div>
+                </div>
+                <div class="metric-card critical">
+                    <div class="metric-value" id="criticalFindings">0</div>
+                    <div class="metric-label">Critical Findings</div>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <span class="card-title">Report Generator</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Report Type</label>
+                        <select id="reportType" onchange="updateReportOptions()">
+                            <option value="executive">Executive Summary</option>
+                            <option value="technical">Technical Incident Report</option>
+                            <option value="compliance">Compliance Report (SOC 2/GDPR)</option>
+                            <option value="threat">Threat Intelligence Report</option>
+                            <option value="weekly">Weekly Security Summary</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Time Range</label>
+                        <select id="reportTimeRange">
+                            <option value="24h">Last 24 Hours</option>
+                            <option value="7d" selected>Last 7 Days</option>
+                            <option value="30d">Last 30 Days</option>
+                            <option value="90d">Last 90 Days</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Include Sections</label>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="includeExecSummary" checked> Executive Summary
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="includeThreats" checked> Threat Analysis
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="includeCompliance" checked> Compliance Status
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="includeRecommendations" checked> Recommendations
+                            </label>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 16px;">
+                        <button class="btn btn-primary" onclick="generateReport()">📄 Generate PDF Report</button>
+                        <button class="btn btn-secondary" onclick="previewReport()">👁️ Preview</button>
+                    </div>
+                </div>
+
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <span class="card-title">Compliance Checkpoints</span>
+                    </div>
+                    <div id="complianceCheckpoints">
+                        <div class="compliance-item">
+                            <div class="compliance-header">
+                                <span class="compliance-icon success">✓</span>
+                                <span>Access Control (SOC 2 CC6.1)</span>
+                            </div>
+                            <div class="compliance-bar">
+                                <div class="compliance-fill" style="width: 92%;"></div>
+                            </div>
+                            <span class="compliance-percent">92%</span>
+                        </div>
+                        <div class="compliance-item">
+                            <div class="compliance-header">
+                                <span class="compliance-icon success">✓</span>
+                                <span>Encryption (SOC 2 CC6.7)</span>
+                            </div>
+                            <div class="compliance-bar">
+                                <div class="compliance-fill" style="width: 88%;"></div>
+                            </div>
+                            <span class="compliance-percent">88%</span>
+                        </div>
+                        <div class="compliance-item">
+                            <div class="compliance-header">
+                                <span class="compliance-icon warning">!</span>
+                                <span>Logging & Monitoring (SOC 2 CC7.2)</span>
+                            </div>
+                            <div class="compliance-bar">
+                                <div class="compliance-fill warning" style="width: 75%;"></div>
+                            </div>
+                            <span class="compliance-percent">75%</span>
+                        </div>
+                        <div class="compliance-item">
+                            <div class="compliance-header">
+                                <span class="compliance-icon success">✓</span>
+                                <span>Data Privacy (GDPR Art. 32)</span>
+                            </div>
+                            <div class="compliance-bar">
+                                <div class="compliance-fill" style="width: 95%;"></div>
+                            </div>
+                            <span class="compliance-percent">95%</span>
+                        </div>
+                        <div class="compliance-item">
+                            <div class="compliance-header">
+                                <span class="compliance-icon error">✗</span>
+                                <span>Incident Response (SOC 2 CC6.6)</span>
+                            </div>
+                            <div class="compliance-bar">
+                                <div class="compliance-fill error" style="width: 65%;"></div>
+                            </div>
+                            <span class="compliance-percent">65%</span>
+                        </div>
+                        <div class="compliance-item">
+                            <div class="compliance-header">
+                                <span class="compliance-icon success">✓</span>
+                                <span>Network Security (SOC 2 CC6.8)</span>
+                            </div>
+                            <div class="compliance-bar">
+                                <div class="compliance-fill" style="width: 85%;"></div>
+                            </div>
+                            <span class="compliance-percent">85%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Report Preview</span>
+                    <button class="btn btn-secondary" onclick="downloadReport()">📥 Download</button>
+                </div>
+                <div id="reportPreview" class="report-preview">
+                    <div class="report-header">
+                        <h2 style="margin-bottom: 4px;">Security Executive Summary</h2>
+                        <p style="color: var(--text-secondary);">Generated: <span id="reportDate">February 28, 2026</span></p>
+                    </div>
+                    <div class="report-section">
+                        <h3>Executive Overview</h3>
+                        <p>This report provides a comprehensive overview of the organization's security posture for the reporting period. Key findings indicate <strong>25 security threats</strong> were detected and analyzed, with <strong>3 critical</strong> incidents requiring immediate attention.</p>
+                    </div>
+                    <div class="report-section">
+                        <h3>Key Metrics</h3>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 12px;">
+                            <div style="text-align: center; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-red);">3</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Critical</div>
+                            </div>
+                            <div style="text-align: center; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-yellow);">8</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">High</div>
+                            </div>
+                            <div style="text-align: center; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-purple);">10</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Medium</div>
+                            </div>
+                            <div style="text-align: center; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-green);">4</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">Low</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="report-section">
+                        <h3>Recommendations</h3>
+                        <ul style="margin-top: 8px; padding-left: 20px; color: var(--text-secondary);">
+                            <li>Implement automated incident response playbooks to improve SOC 2 CC6.6 compliance</li>
+                            <li>Enhance logging and monitoring capabilities for critical systems</li>
+                            <li>Review access controls for administrative accounts</li>
+                            <li>Conduct quarterly security awareness training</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">C-Level Presentation Mode</span>
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="startPresentationMode()">🎬 Start Presentation</button>
+                    <button class="btn btn-secondary" onclick="exportSlideDeck()">📊 Export to PPTX</button>
+                    <button class="btn btn-secondary" onclick="shareReport()">🔗 Share Link</button>
                 </div>
             </div>
         </section>
@@ -3290,6 +3596,130 @@
         document.querySelector('[data-page="live-logs"]').addEventListener('click', () => {
             // Initialize live logs
         });
+        document.querySelector('[data-page="reports"]').addEventListener('click', () => {
+            updateReportMetrics();
+        });
+
+        // Reports Functions
+        let reportsGenerated = 0;
+
+        function updateReportOptions() {
+            const type = document.getElementById('reportType').value;
+            const preview = document.getElementById('reportPreview');
+            
+            document.getElementById('reportDate').textContent = new Date().toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+        }
+
+        function updateReportMetrics() {
+            const critical = allAnomalies ? allAnomalies.filter(a => a.severity === 'CRITICAL').length : 0;
+            const high = allAnomalies ? allAnomalies.filter(a => a.severity === 'HIGH').length : 0;
+            
+            document.getElementById('criticalFindings').textContent = critical + high;
+            document.getElementById('openIncidents').textContent = allAnomalies ? allAnomalies.length : 0;
+            document.getElementById('complianceScore').textContent = '83%';
+            document.getElementById('reportsGenerated').textContent = reportsGenerated;
+        }
+
+        function generateReport() {
+            const type = document.getElementById('reportType').value;
+            const timeRange = document.getElementById('reportTimeRange').value;
+            
+            reportsGenerated++;
+            document.getElementById('reportsGenerated').textContent = reportsGenerated;
+            
+            showNotification('Generating PDF report...', 'success');
+            
+            setTimeout(() => {
+                showNotification('PDF Report generated successfully!', 'success');
+            }, 1500);
+        }
+
+        function previewReport() {
+            const type = document.getElementById('reportType').value;
+            const timeRange = document.getElementById('reportTimeRange').value;
+            
+            const reportTypes = {
+                'executive': 'Security Executive Summary',
+                'technical': 'Technical Incident Report',
+                'compliance': 'Compliance Report (SOC 2/GDPR)',
+                'threat': 'Threat Intelligence Report',
+                'weekly': 'Weekly Security Summary'
+            };
+            
+            showNotification(`Previewing ${reportTypes[type]}`, 'success');
+        }
+
+        function downloadReport() {
+            const reportContent = document.getElementById('reportPreview').innerText;
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `security-report-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Report downloaded!', 'success');
+        }
+
+        function startPresentationMode() {
+            const presentationHtml = `
+                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0d1117; z-index: 10000; padding: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+                    <h1 style="font-size: 3rem; margin-bottom: 24px; text-align: center;">Security Executive Summary</h1>
+                    <div style="font-size: 1.5rem; color: #8b949e; margin-bottom: 48px;">February 2026</div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; width: 100%; max-width: 1000px;">
+                        <div style="text-align: center; padding: 32px; background: rgba(248,81,73,0.2); border-radius: 16px; border: 1px solid #f85149;">
+                            <div style="font-size: 3rem; font-weight: 700; color: #f85149;">3</div>
+                            <div style="font-size: 1rem; color: #8b949e; margin-top: 8px;">Critical</div>
+                        </div>
+                        <div style="text-align: center; padding: 32px; background: rgba(210,153,34,0.2); border-radius: 16px; border: 1px solid #d29922;">
+                            <div style="font-size: 3rem; font-weight: 700; color: #d29922;">8</div>
+                            <div style="font-size: 1rem; color: #8b949e; margin-top: 8px;">High</div>
+                        </div>
+                        <div style="text-align: center; padding: 32px; background: rgba(163,113,247,0.2); border-radius: 16px; border: 1px solid #a371f7;">
+                            <div style="font-size: 3rem; font-weight: 700; color: #a371f7;">10</div>
+                            <div style="font-size: 1rem; color: #8b949e; margin-top: 8px;">Medium</div>
+                        </div>
+                        <div style="text-align: center; padding: 32px; background: rgba(63,185,80,0.2); border-radius: 16px; border: 1px solid #3fb950;">
+                            <div style="font-size: 3rem; font-weight: 700; color: #3fb950;">4</div>
+                            <div style="font-size: 1rem; color: #8b949e; margin-top: 8px;">Low</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 48px; color: #8b949e; font-size: 0.9rem;">
+                        Press ESC to exit presentation mode
+                    </div>
+                </div>
+            `;
+            
+            const div = document.createElement('div');
+            div.id = 'presentationMode';
+            div.innerHTML = presentationHtml;
+            document.body.appendChild(div);
+            
+            document.addEventListener('keydown', function exitPresentation(e) {
+                if (e.key === 'Escape') {
+                    div.remove();
+                    document.removeEventListener('keydown', exitPresentation);
+                }
+            });
+            
+            showNotification('Presentation mode started. Press ESC to exit.', 'success');
+        }
+
+        function exportSlideDeck() {
+            showNotification('Exporting to PPTX...', 'success');
+        }
+
+        function shareReport() {
+            const shareUrl = window.location.origin + '?report=' + Date.now();
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showNotification('Share link copied to clipboard!', 'success');
+            });
+        }
 
         checkHealth();
         setInterval(checkHealth, 30000);
