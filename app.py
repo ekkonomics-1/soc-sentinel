@@ -564,8 +564,283 @@ def health():
             'simulator': simulator is not None,
             'detector': detector is not None,
             'explainer': explainer is not None,
-            'shap_initialized': shap_initialized
+            'shap_initialized': shap_initialized,
+            'threat_intel': threat_client is not None
         }
+    })
+
+
+# Threat Intelligence Endpoints
+threat_intel_initialized = False
+
+def init_threat_intel(abuseipdb_key=None):
+    global threat_client, threat_intel_initialized
+    from src.threat_intel.client import get_threat_client
+    threat_client = get_threat_client(abuseipdb_key)
+    threat_intel_initialized = True
+    print("Threat Intelligence client initialized")
+
+
+@app.route('/api/threat/check-ip', methods=['POST'])
+def check_ip_threat():
+    """Check IP address against threat intelligence databases"""
+    data = request.get_json() or {}
+    ip_address = data.get('ip_address')
+    
+    if not ip_address:
+        return jsonify({'error': 'IP address required'}), 400
+    
+    if not threat_intel_initialized:
+        init_threat_intel()
+    
+    result = threat_client.check_ip(ip_address)
+    
+    if result:
+        return jsonify({
+            'success': True,
+            'ip_address': ip_address,
+            'is_malicious': result.get('is_malicious', False),
+            'threat_level': result.get('threat_level', 'UNKNOWN'),
+            'abuse_confidence_score': result.get('abuse_confidence_score', 0),
+            'country_code': result.get('country_code'),
+            'country_name': result.get('country_name'),
+            'isp': result.get('isp'),
+            'categories': result.get('categories', []),
+            'total_reports': result.get('total_reports', 0),
+            'last_reported': result.get('last_reported_at'),
+            'timestamp': result.get('timestamp')
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'ip_address': ip_address,
+            'error': 'Unable to check IP'
+        })
+
+
+@app.route('/api/threat/intelligence', methods=['GET'])
+def get_threat_intel():
+    """Get threat intelligence statistics"""
+    if not threat_intel_initialized:
+        init_threat_intel()
+    
+    stats = threat_client.get_statistics()
+    
+    return jsonify({
+        'success': True,
+        'statistics': stats,
+        'timestamp': datetime.now().isoformat()
+    })
+
+
+@app.route('/api/threat/blacklist', methods=['GET'])
+def get_blacklist():
+    """Get current blacklist"""
+    if not threat_intel_initialized:
+        init_threat_intel()
+    
+    limit = int(request.args.get('limit', 100))
+    confidence = int(request.args.get('confidence_min', 50))
+    
+    blacklist = threat_client.get_blacklist(confidence_min=confidence, limit=limit)
+    
+    if blacklist:
+        return jsonify({
+            'success': True,
+            'count': len(blacklist),
+            'blacklist': blacklist
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Unable to fetch blacklist'
+        })
+
+
+# Live Detection with Real Data
+real_detection_enabled = False
+detection_history = []
+
+@app.route('/api/detection/start', methods=['POST'])
+def start_real_detection():
+    """Start real-time threat detection"""
+    global real_detection_enabled, detection_history
+    
+    data = request.get_json() or {}
+    abuseipdb_key = data.get('abuseipdb_api_key')
+    
+    if abuseipdb_key:
+        init_threat_intel(abuseipdb_key)
+    elif not threat_intel_initialized:
+        init_threat_intel()
+    
+    real_detection_enabled = True
+    detection_history = []
+    
+    return jsonify({
+        'success': True,
+        'message': 'Real-time detection started',
+        'mode': 'hybrid' if abuseipdb_key else 'demo'
+    })
+
+
+@app.route('/api/detection/stop', methods=['POST'])
+def stop_real_detection():
+    """Stop real-time threat detection"""
+    global real_detection_enabled
+    real_detection_enabled = False
+    
+    return jsonify({
+        'success': True,
+        'message': 'Real-time detection stopped'
+    })
+
+
+@app.route('/api/detection/status', methods=['GET'])
+def get_detection_status():
+    """Get current detection status"""
+    return jsonify({
+        'enabled': real_detection_enabled,
+        'total_detections': len(detection_history),
+        'recent_detections': detection_history[-10:] if detection_history else []
+    })
+
+
+@app.route('/api/detection/simulate', methods=['POST'])
+def simulate_detection():
+    """Simulate detection event with threat intelligence"""
+    global detection_history
+    
+    data = request.get_json() or {}
+    use_real_ip = data.get('use_real_ip', False)
+    
+    import random
+    
+    sample_malicious_ips = [
+        "185.220.101.1", "45.33.32.156", "23.129.64.130",
+        "195.154.181.163", "91.121.87.10", "149.202.38.189"
+    ]
+    
+    sample_ips = [
+        "192.168.1." + str(random.randint(1, 254)),
+        "10.0.0." + str(random.randint(1, 254)),
+        "172.16.0." + str(random.randint(1, 254))
+    ]
+    
+    if use_real_ip:
+        ip_address = random.choice(sample_malicious_ips)
+    else:
+        ip_address = random.choice(sample_ips + sample_malicious_ips)
+    
+    if threat_intel_initialized and threat_client:
+        threat_info = threat_client.check_ip(ip_address)
+    else:
+        threat_info = None
+    
+    attack_types = [
+        "DDoS", "Brute Force", "Malware", "Port Scan", 
+        "SQL Injection", "XSS", "Botnet", "Phishing"
+    ]
+    
+    countries = {
+        "CN": {"name": "China", "lat": 35.8617, "lng": 104.1954},
+        "RU": {"name": "Russia", "lat": 61.5240, "lng": 105.3188},
+        "US": {"name": "United States", "lat": 37.0902, "lng": -95.7129},
+        "IR": {"name": "Iran", "lat": 32.4279, "lng": 53.6880},
+        "DE": {"name": "Germany", "lat": 51.1657, "lng": 10.4515},
+        "BR": {"name": "Brazil", "lat": -14.2350, "lng": -51.9253}
+    }
+    
+    country_code = random.choice(list(countries.keys()))
+    country = countries[country_code]
+    
+    severity_levels = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+    severity_weights = [0.1, 0.25, 0.35, 0.3]
+    severity = random.choices(severity_levels, weights=severity_weights)[0]
+    
+    detection = {
+        "id": len(detection_history) + 1,
+        "timestamp": datetime.now().isoformat(),
+        "ip_address": ip_address,
+        "country_code": country_code,
+        "country_name": country["name"],
+        "latitude": country["lat"],
+        "longitude": country["lng"],
+        "attack_type": random.choice(attack_types),
+        "severity": severity,
+        "anomaly_score": random.uniform(0.7, 1.0) if severity in ["CRITICAL", "HIGH"] else random.uniform(0.4, 0.7),
+        "threat_intel": threat_info,
+        "is_malicious_ip": threat_info.get('is_malicious', False) if threat_info else False,
+        "abuse_score": threat_info.get('abuse_confidence_score', 0) if threat_info else 0
+    }
+    
+    detection_history.append(detection)
+    
+    if len(detection_history) > 1000:
+        detection_history = detection_history[-1000:]
+    
+    return jsonify({
+        'success': True,
+        'detection': detection
+    })
+
+
+@app.route('/api/detection/history', methods=['GET'])
+def get_detection_history():
+    """Get detection history"""
+    limit = int(request.args.get('limit', 50))
+    severity = request.args.get('severity')
+    
+    filtered = detection_history
+    if severity:
+        filtered = [d for d in detection_history if d.get('severity') == severity.upper()]
+    
+    return jsonify({
+        'success': True,
+        'count': len(filtered),
+        'detections': filtered[-limit:]
+    })
+
+
+@app.route('/api/detection/stats', methods=['GET'])
+def get_detection_stats():
+    """Get detection statistics"""
+    if not detection_history:
+        return jsonify({
+            'success': True,
+            'total': 0,
+            'by_severity': {},
+            'by_country': {},
+            'by_attack_type': {},
+            'malicious_ips': 0
+        })
+    
+    by_severity = {}
+    by_country = {}
+    by_attack_type = {}
+    malicious_ips = 0
+    
+    for d in detection_history:
+        sev = d.get('severity', 'UNKNOWN')
+        by_severity[sev] = by_severity.get(sev, 0) + 1
+        
+        country = d.get('country_name', 'Unknown')
+        by_country[country] = by_country.get(country, 0) + 1
+        
+        attack = d.get('attack_type', 'Unknown')
+        by_attack_type[attack] = by_attack_type.get(attack, 0) + 1
+        
+        if d.get('is_malicious_ip'):
+            malicious_ips += 1
+    
+    return jsonify({
+        'success': True,
+        'total': len(detection_history),
+        'by_severity': by_severity,
+        'by_country': by_country,
+        'by_attack_type': by_attack_type,
+        'malicious_ips': malicious_ips,
+        'percentage_malicious': round(malicious_ips / len(detection_history) * 100, 2) if detection_history else 0
     })
 
 

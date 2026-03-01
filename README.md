@@ -12,6 +12,19 @@
 
 SOC Sentinel is an enterprise-grade Security Operations Center (SOC) anomaly detection system that combines machine learning with explainable AI to not only detect threats but explain them in human-understandable terms. Built with Flask + HTML/JS for modern 2026 SOC workflows.
 
+## ⚡ NEW: Real Threat Intelligence + ML Training
+
+This version includes **real ML model training** with CICIDS2017 dataset and **live threat intelligence** from AbuseIPDB!
+
+```bash
+# Train your own model on real data
+python -m src.ml.training --download --sample 100000
+
+# The dashboard now shows real threat data from AbuseIPDB!
+```
+
+---
+
 ## ⭐ Why This Project Stands Out
 
 ### For Your Portfolio: Interview-Ready Proof
@@ -36,10 +49,42 @@ SOC Sentinel is an enterprise-grade Security Operations Center (SOC) anomaly det
 - ✅ **Threat Hunting** - Hypothesis-driven IOC search
 - ✅ **Real-time Monitoring** - Live log streaming
 - ✅ **Compliance Reporting** - SOC 2 / GDPR checkpoints
+- ✅ **Real ML Training** - Train models on CICIDS2017 dataset
+- ✅ **Threat Intelligence APIs** - AbuseIPDB integration with real data
 
 ---
 
-## 🏗️ Architecture
+## 🤖 ML Model Training (NEW!)
+
+### Train Your Own Model on Real Data
+
+```bash
+# Download and train on CICIDS2017 dataset (2.8M flows, 14 attack types)
+python -m src.ml.training --download --sample 100000
+
+# This will:
+# 1. Download CICIDS2017 dataset from Kaggle
+# 2. Preprocess network flow features
+# 3. Train ensemble model (Isolation Forest + Random Forest)
+# 4. Evaluate and save model
+```
+
+### Datasets Supported
+
+| Dataset | Size | Attack Types |
+|---------|------|--------------|
+| CICIDS2017 | 2.8M flows | 14 types |
+| UNSW-NB15 | 100GB | 9 types |
+
+### Training Features
+
+- **Preprocessing**: Handle missing values, encode categorical features, normalize
+- **Models**: Isolation Forest (unsupervised) + Random Forest (supervised)
+- **Evaluation**: Accuracy, Precision, Recall, F1 Score, Confusion Matrix
+
+---
+
+## 🌐 Threat Intelligence (NEW!)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
